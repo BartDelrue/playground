@@ -13,13 +13,20 @@ let installedPackageJson: string | null = null
 // reaches the playground's Console pane via postMessage — invisible to the student.
 const CONSOLE_SCRIPT_HTML = `<script>
 ;(function(){
+  // Errors and DOM nodes JSON.stringify to "{}" (non-enumerable props) —
+  // format them explicitly so students actually see what went wrong.
+  var _fmt = function(a) {
+    try {
+      if (a instanceof Error) return (a.name || 'Error') + ': ' + a.message
+      if (a instanceof Node) return a.outerHTML != null ? a.outerHTML : String(a)
+      return typeof a === 'object' ? JSON.stringify(a) : String(a)
+    } catch(e) { return String(a) }
+  }
   var _post = function(type, args) {
     window.top.postMessage({
       source: 'playground-console',
       type: type,
-      message: Array.from(args).map(function(a){
-        try { return typeof a === 'object' ? JSON.stringify(a) : String(a) } catch(e) { return String(a) }
-      }).join(' ')
+      message: Array.from(args).map(_fmt).join(' ')
     }, '*')
   }
   console.log   = function() { _post('info',  arguments) }

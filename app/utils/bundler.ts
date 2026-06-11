@@ -78,10 +78,19 @@ export async function buildModuleUrls(
 
 const CONSOLE_SCRIPT = `<script>
 ;(function(){
+  // Errors and DOM nodes JSON.stringify to "{}" (non-enumerable props) —
+  // format them explicitly so students actually see what went wrong.
+  const _fmt = a => {
+    try {
+      if (a instanceof Error) return (a.name || 'Error') + ': ' + a.message
+      if (a instanceof Node) return a.outerHTML ?? String(a)
+      return typeof a === 'object' ? JSON.stringify(a) : String(a)
+    } catch { return String(a) }
+  }
   const _post = (type, args) => window.top.postMessage({
     source: 'playground-console',
     type,
-    message: args.map(a => { try { return typeof a === 'object' ? JSON.stringify(a) : String(a) } catch { return String(a) } }).join(' ')
+    message: args.map(_fmt).join(' ')
   }, '*')
   console.log   = (...a) => _post('info',  a)
   console.info  = (...a) => _post('info',  a)

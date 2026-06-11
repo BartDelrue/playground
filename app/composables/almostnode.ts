@@ -73,7 +73,6 @@ http.createServer = function(optsOrHandler, maybeHandler) {
   function wrappedHandler(req, res) {
     const urlPath = req.url === '/' ? '/index.html' : (req.url || '/').split('?')[0]
     const full = '/client' + urlPath
-    process.stdout.write('[req] ' + req.method + ' ' + req.url + '\\n')
     // Try static file first via read; avoids existsSync quirks on nested VFS paths.
     try {
       const data = fs.readFileSync(full)

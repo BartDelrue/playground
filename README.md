@@ -55,9 +55,6 @@ app/
     bundler.ts       # browser-mode bundler: blob URLs, import rewriting, esm.sh
     logTypes.ts      # LogType enum (auto-imported everywhere)
     fileTree.ts      # buildFileTree utility
-public/
-  coi-serviceworker.js   # cross-origin isolation fallback (see below)
-  favicon-*.svg
 ```
 
 ---
@@ -65,9 +62,6 @@ public/
 ## Console capture
 
 All three modes intercept `console.log / warn / error` in the preview iframe and relay them to the **Console** pane in the playground UI via `window.top.postMessage`.
-
-- **browser / vue**: injected via a `<script>` prepended to `<head>` in the generated HTML (see `utils/bundler.ts`).
-- **node**: injected via a hidden Vite plugin written to `.playground/` inside the WebContainer after mount — the user's `vite.config.js` stays clean.
 
 ---
 

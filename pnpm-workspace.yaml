@@ -1,0 +1,7 @@
+allowBuilds:
+  '@mongodb-js/zstd': true
+  '@parcel/watcher': true
+  '@swc/core': true
+  esbuild: true
+  node-liblzma: true
+  unrs-resolver: true

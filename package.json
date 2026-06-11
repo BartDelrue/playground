@@ -1,0 +1,44 @@
+{
+  "name": "nuxt-app",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "pnpm run build:browser & pnpm run build:vue & pnpm run build:node",
+    "build:browser": "nuxt build --dotenv .env.browser",
+    "build:vue": "nuxt build --dotenv .env.vue",
+    "build:node": "nuxt build --dotenv .env.node",
+    "dev": "nuxt dev --dotenv .env.node",
+    "dev:browser": "nuxt dev --dotenv .env.browser",
+    "dev:vue": "nuxt dev --dotenv .env.vue",
+    "dev:node": "nuxt dev --dotenv .env.node",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare && node patch-almostnode.cjs",
+    "test": "vitest",
+    "test:watch": "vitest --watch",
+    "test:coverage": "vitest --coverage",
+    "test:unit": "vitest --project unit",
+    "test:nuxt": "vitest --project nuxt",
+    "lint:eslint": "eslint . --fix --cache"
+  },
+  "dependencies": {
+    "@nuxt/eslint": "1.15.2",
+    "@nuxt/icon": "2.2.3",
+    "@nuxt/test-utils": "4.0.3",
+    "@vue/compiler-sfc": "^3.5.35",
+    "@vue/repl": "^4.7.2",
+    "@webcontainer/api": "^1.6.4",
+    "almostnode": "^0.2.14",
+    "eslint": "^9.0.0 || ^10.0.0",
+    "monaco-editor": "^0.55.1",
+    "nuxt": "^4.4.7",
+    "vue": "^3.5.35",
+    "vue-router": "^5.1.0"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^4.1.8",
+    "@vue/test-utils": "^2.4.11",
+    "happy-dom": "^20.10.1",
+    "vitest": "^4.1.8"
+  }
+}

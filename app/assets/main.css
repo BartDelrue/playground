@@ -1,0 +1,374 @@
+/* ── Design tokens ───────────────────────────────────────────────────────── */
+:root {
+  --font-mono: 'Consolas', 'Courier New', monospace;
+
+  /* Catppuccin Mocha palette in oklch */
+  --crust:   oklch(16% 0.02 264);
+  --mantle:  oklch(18% 0.02 264);
+  --base:    oklch(21% 0.02 264);
+  --surface0: oklch(27% 0.02 264);
+  --surface1: oklch(32% 0.02 264);
+  --overlay0: oklch(44% 0.02 264);
+  --subtext0: oklch(60% 0.02 264);
+  --text:     oklch(84% 0.02 264);
+
+  --lavender: oklch(75% 0.12 270);
+  --blue:     oklch(72% 0.15 235);
+  --green:    oklch(80% 0.14 152);
+  --teal:     oklch(78% 0.12 185);
+  --red:      oklch(72% 0.18 15);
+  --orange:   oklch(82% 0.18 50);
+  --mauve:    oklch(72% 0.15 300);
+
+  /* Spacing */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+
+  /* Pane chrome */
+  --toolbar-h:    40px;
+  --pane-header-h: 28px;
+  --divider-size:  4px;
+
+  /* Transitions */
+  --t-fast: 0.15s ease;
+}
+
+/* ── Reset ───────────────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body, #app {
+  block-size: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: var(--font-mono);
+  background: var(--base);
+  color: var(--text);
+}
+
+/* ── App root ────────────────────────────────────────────────────────────── */
+.app-root {
+  block-size: 100dvb;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ── Toolbar ─────────────────────────────────────────────────────────────── */
+.toolbar {
+  block-size: var(--toolbar-h);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  padding-inline: var(--space-4);
+  gap: var(--space-3);
+  background: var(--mantle);
+  border-block-end: 1px solid var(--surface0);
+
+  & .toolbar-title  { font-size: .9rem; font-weight: 700; color: var(--green); }
+  & .toolbar-file   { font-size: .8rem; color: var(--subtext0); }
+  & .toolbar-status { font-size: .8rem; color: var(--blue); }
+}
+
+.restart-btn {
+  margin-inline-start: auto;
+  padding-block: var(--space-1);
+  padding-inline: 14px;
+  background: var(--green);
+  color: var(--crust);
+  border: none;
+  border-radius: var(--space-1);
+  cursor: pointer;
+  font-size: .8rem;
+  font-weight: 700;
+  transition: background var(--t-fast);
+
+  &:hover:not(:disabled) { background: var(--teal); }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+/* ── Workspace ───────────────────────────────────────────────────────────── */
+.workspace {
+  flex: 1;
+  min-block-size: 0;
+  display: flex;
+  flex-direction: row;
+  overflow: hidden;
+}
+
+/* ── Drag dividers ───────────────────────────────────────────────────────── */
+.v-divider,
+.h-divider {
+  flex-shrink: 0;
+  background: var(--surface0);
+  transition: background var(--t-fast);
+
+  &:hover, &.active { background: var(--blue); }
+}
+
+.v-divider {
+  inline-size: var(--divider-size);
+  cursor: col-resize;
+}
+
+.h-divider {
+  block-size: var(--divider-size);
+  cursor: row-resize;
+}
+
+/* ── Center column ───────────────────────────────────────────────────────── */
+.center-col {
+  flex: 1;
+  min-inline-size: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ── Sidebar ─────────────────────────────────────────────────────────────── */
+.sidebar {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--mantle);
+
+  & .sidebar-header {
+    padding-block: var(--space-2);
+    padding-inline: var(--space-3);
+    flex-shrink: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--subtext0);
+    border-block-end: 1px solid var(--surface0);
+  }
+
+  & .file-list {
+    overflow-y: auto;
+    margin-block: var(--space-4);
+  }
+
+  & .file-item {
+    padding-block: 5px;
+    padding-inline: var(--space-3) var(--space-2);
+    cursor: pointer;
+    font-size: .8rem;
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    user-select: none;
+    transition: background var(--t-fast);
+
+    &:hover { background: var(--surface0); }
+    &.active { background: var(--surface1); color: var(--blue); }
+
+    & .del-btn {
+      visibility: hidden;
+      &:focus-visible { visibility: visible; }
+    }
+    &:hover .del-btn { visibility: visible; }
+  }
+
+  & .sidebar-accent {
+    border-block: 2px solid var(--red);
+    color: var(--text);
+    margin-block-start: var(--space-4);
+    padding-block: var(--space-4);
+    overflow: auto;
+    max-height: 40%;
+
+    h2 {
+      color: var(--red);
+    }
+  }
+}
+
+.file-add, .playSubmit {
+  padding-inline: var(--space-3);
+  margin-block: var(--space-4);
+}
+
+.flex {
+  display: flex;
+}
+.g-1 {
+  gap: .8em;
+}
+
+.file-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.add-file-btn {
+  background: none;
+  border: none;
+  color: var(--green);
+  cursor: pointer;
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+.del-btn {
+  background: none;
+  border: none;
+  color: var(--red);
+  cursor: pointer;
+  font-size: 1rem;
+  padding-inline: 2px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.btn {
+  background-color: inherit;
+  border: 1px solid;
+  font: inherit;
+  color: var(--green);
+  display: inline-flex;
+  align-items: center;
+  gap: .5em;
+  padding: .2em .5em;
+  border-radius: .2em;
+  font-size: .8rem;
+  transition: background-color .2s ease-in-out;
+
+  &:hover,
+  &:focus-visible {
+    cursor: pointer;
+    background-color: oklch(from var(--green) l c h / .1);
+  }
+}
+
+/* ── Editor ──────────────────────────────────────────────────────────────── */
+.editor-pane {
+  flex: 1;
+  overflow: hidden;
+  min-block-size: 0;
+}
+
+/* ── Pane header (shared by preview + terminal) ──────────────────────────── */
+.pane-header {
+  padding-block: 6px;
+  padding-inline: var(--space-3);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  background: var(--mantle);
+  border-block-end: 1px solid var(--surface0);
+  font-size: .7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--subtext0);
+}
+
+/* ── Preview ─────────────────────────────────────────────────────────────── */
+.preview-pane {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--crust);
+}
+
+.preview-url {
+  color: var(--green);
+  text-transform: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.preview-body {
+  flex: 1;
+  min-block-size: 0;
+  position: relative;
+}
+
+.preview-iframe {
+  inline-size: 100%;
+  block-size: 100%;
+  border: none;
+  background: #fff;
+  display: block;
+}
+
+.preview-placeholder {
+  block-size: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  color: var(--subtext0);
+  font-size: .8rem;
+  text-align: center;
+  padding: 20px;
+
+  & .placeholder-icon { font-size: 2rem; }
+}
+
+/* ── Terminal ────────────────────────────────────────────────────────────── */
+.terminal-pane {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--crust);
+}
+
+.terminal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding-block: 6px;
+  padding-inline: var(--space-2) var(--space-3);
+  font-size: .8rem;
+}
+
+.log-line {
+  margin-block-end: 1px;
+  word-break: break-all;
+  white-space: pre-wrap;
+
+  &.log-log { color: var(--green)}
+  &.log-info  { color: var(--text); }
+  &.log-error { color: var(--red); }
+  &.log-warning, &.log-warn { color: var(--orange); }
+}
+
+.label {
+  font-size: .8em;
+  font-weight: bold;
+}
+
+.input {
+  display: inline-block;
+  background: var(--surface0);
+  border: 0 solid #555;
+  border-radius: 4px;
+  color: var(--text);
+  font-size: .8rem;
+  padding: .2em .5em;
+  margin-block: .5em;
+  width: 100%;
+  max-width: 12em;
+
+  &:focus-visible {
+    border-color: #007acc;
+  }
+}

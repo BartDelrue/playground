@@ -1,0 +1,6 @@
+{
+  "imports": {
+    "vue-router": "https://esm.sh/vue-router@4",
+    "pinia":      "https://esm.sh/pinia@2"
+  }
+}

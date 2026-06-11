@@ -1,5 +1,6 @@
 import { createContainer } from 'almostnode'
 import type { FsProvider } from '~/composables/files'
+import { buildModuleUrls, buildHtml, transpileTs } from '~/utils/bundler'
 
 type LogHandler = (text: string, type?: LogType) => void
 
@@ -25,9 +26,15 @@ const CONSOLE_SCRIPT_HTML = `<script>
   console.info  = function() { _post('info',  arguments) }
   console.warn  = function() { _post('warn',  arguments) }
   console.error = function() { _post('error', arguments) }
-  
-  window.onerror = function (...arguments) { _post('error', arguments) }
-  window.onunhandledrejection = function (...arguments) { _post('error', arguments) }
+
+  window.addEventListener('error', function(e) {
+    var loc = e.filename ? ' (' + e.filename.split('/').pop() + ':' + e.lineno + ')' : ''
+    _post('error', [e.message + loc])
+  })
+  window.addEventListener('unhandledrejection', function(e) {
+    var r = e.reason
+    _post('error', ['Unhandled promise rejection: ' + (r instanceof Error ? r.message : String(r))])
+  })
 })()
 </script>`
 
@@ -45,25 +52,11 @@ function buildRunner(entryFile: string): string {
 import fs from 'fs'
 import path from 'path'
 
-const CLIENT = path.join(process.cwd(), 'client')
 const MIME = {
   '.html': 'text/html; charset=utf-8',
   '.js':   'application/javascript; charset=utf-8',
   '.css':  'text/css; charset=utf-8',
   '.json': 'application/json',
-}
-
-function serveStatic(req, res) {
-  const file = req.url === '/' ? '/index.html' : req.url.split('?')[0]
-  const full = path.join(CLIENT, file)
-  if (!fs.existsSync(full)) {
-    res.writeHead(404, { 'Content-Type': 'text/plain' })
-    res.end('Not found')
-    return
-  }
-  const ext = path.extname(full)
-  res.writeHead(200, { 'Content-Type': MIME[ext] || 'text/plain', 'Cache-Control': 'no-store' })
-  res.end(fs.readFileSync(full))
 }
 
 const origCreateServer = http.createServer.bind(http)
@@ -78,13 +71,26 @@ http.createServer = function(optsOrHandler, maybeHandler) {
   }
 
   function wrappedHandler(req, res) {
+    const urlPath = req.url === '/' ? '/index.html' : (req.url || '/').split('?')[0]
+    const full = '/client' + urlPath
+    process.stdout.write('[req] ' + req.method + ' ' + req.url + '\\n')
+    // Try static file first via read; avoids existsSync quirks on nested VFS paths.
+    try {
+      const data = fs.readFileSync(full)
+      const ext = path.extname(full)
+      res.writeHead(200, { 'Content-Type': MIME[ext] || 'text/plain', 'Cache-Control': 'no-store' })
+      res.end(data)
+      return
+    } catch { /* not a static client file — fall through to app handler */ }
     if (handler) {
       handler(req, res, (err) => {
         if (err) { res.writeHead(500); res.end(String(err)); return }
-        serveStatic(req, res)
+        res.writeHead(404, { 'Content-Type': 'text/plain' })
+        res.end('Not found: ' + full)
       })
     } else {
-      serveStatic(req, res)
+      res.writeHead(404, { 'Content-Type': 'text/plain' })
+      res.end('Not found: ' + full)
     }
   }
 
@@ -122,6 +128,18 @@ export const useAlmostNode = (files: Record<string, string>) => {
   const isBooting = ref(false)
   const bootStatus = ref('')
 
+  const activeBlobs: string[] = []
+  const revoke = () => { activeBlobs.forEach(URL.revokeObjectURL); activeBlobs.length = 0 }
+  const mkblob = (code: string, type = 'text/javascript') => {
+    const url = URL.createObjectURL(new Blob([code], { type }))
+    activeBlobs.push(url)
+    return url
+  }
+  async function compile(filename: string, src: string): Promise<string> {
+    if (filename.endsWith('.ts')) return transpileTs(src)
+    return src
+  }
+
   const logHandlers: LogHandler[] = []
   const onLog = (handler: LogHandler) => logHandlers.push(handler)
   const pushLog = (text: string, type: LogType = LogType.INFO) => logHandlers.forEach(h => h(text, type))
@@ -147,30 +165,60 @@ export const useAlmostNode = (files: Record<string, string>) => {
       // Server modules are cached in Node — need a full process restart.
       restartTimer = setTimeout(() => { restartTimer = null; restart() }, 750)
     } else {
-      // Client files only — VFS is already updated via wc.fs.writeFile;
-      // just remount the iframe to pick up the new content.
-      restartTimer = setTimeout(() => {
+      // Client files only — re-sync VFS (handles newly added files and path
+      // normalization) then remount the iframe.
+      restartTimer = setTimeout(async () => {
         restartTimer = null
-        if (previewUrl.value) previewKey.value++
+        if (previewUrl.value && container) {
+          await writeFilesToVfs()
+          previewKey.value++
+        }
       }, 750)
     }
   }, { deep: true })
 
-  function writeFilesToVfs() {
+  function ensureParentDirs(vfs: ReturnType<typeof createContainer>['vfs'], abs: string) {
+    const parts = abs.split('/').slice(1, -1)
+    let dir = ''
+    for (const part of parts) {
+      dir += '/' + part
+      try { vfs.mkdirSync(dir) } catch { /* already exists */ }
+    }
+  }
+
+  async function writeFilesToVfs() {
     const vfs = container!.vfs
+
+    // Build blob URLs for all client JS/TS/CSS files so the browser's ES module
+    // loader can resolve relative imports without going through the HTTP server
+    // (which the almostnode service worker doesn't intercept for module requests).
+    const clientFiles: Record<string, string> = {}
+    for (const [rel, content] of Object.entries(files)) {
+      if (rel.startsWith('client/')) clientFiles[rel.slice('client/'.length)] = content
+    }
+    revoke()
+    const urlMap = Object.keys(clientFiles).length > 0
+      ? await buildModuleUrls(clientFiles, mkblob, compile)
+      : new Map<string, string>()
+
     for (const [rel, content] of Object.entries(files)) {
       const abs = '/' + rel
-      const dir = abs.substring(0, abs.lastIndexOf('/'))
-      if (dir && dir !== '/') {
-        try { vfs.mkdirSync(dir, { recursive: true }) } catch { /* already exists */ }
+      ensureParentDirs(vfs, abs)
+      if (rel.startsWith('client/') && rel.endsWith('.html')) {
+        // Replace module src/import references with blob URLs; buildHtml also
+        // injects the console capture script so we don't call injectConsoleScript.
+        const htmlFilename = rel.slice('client/'.length)
+        const processed = buildHtml(content, htmlFilename, clientFiles, urlMap)
+        vfs.writeFileSync(abs, processed)
+      } else {
+        vfs.writeFileSync(abs, injectConsoleScript(abs, content))
       }
-      vfs.writeFileSync(abs, injectConsoleScript(abs, content))
     }
   }
 
   function writePlaygroundFiles() {
     const vfs = container!.vfs
-    try { vfs.mkdirSync('/.playground', { recursive: true }) } catch { /* already exists */ }
+    try { vfs.mkdirSync('/.playground') } catch { /* already exists */ }
     const entryFile = getEntryFile(files['package.json'] ?? '{}')
     vfs.writeFileSync('/.playground/runner.mjs', buildRunner(entryFile))
   }
@@ -247,10 +295,15 @@ export const useAlmostNode = (files: Record<string, string>) => {
 
         wc.value = {
           fs: {
-            mkdir: async (p, o) => { try { container!.vfs.mkdirSync(p, o) } catch { /* exists */ } },
+            mkdir: async (p, _o) => {
+              const abs = p.startsWith('/') ? p : '/' + p
+              ensureParentDirs(container!.vfs, abs + '/x')
+              try { container!.vfs.mkdirSync(abs) } catch { /* exists */ }
+            },
             writeFile: async (p, c) => {
+              const abs = p.startsWith('/') ? p : '/' + p
               const content = typeof c === 'string' ? c : new TextDecoder().decode(c)
-              container!.vfs.writeFileSync(p, injectConsoleScript(p, content))
+              container!.vfs.writeFileSync(abs, injectConsoleScript(abs, content))
             },
           },
         }
@@ -261,7 +314,7 @@ export const useAlmostNode = (files: Record<string, string>) => {
       }
 
       bootStatus.value = 'Mounting files…'
-      writeFilesToVfs()
+      await writeFilesToVfs()
       writePlaygroundFiles()
       pushLog('Files mounted')
 
@@ -288,7 +341,7 @@ export const useAlmostNode = (files: Record<string, string>) => {
 
     try {
       bootStatus.value = 'Mounting files…'
-      writeFilesToVfs()
+      await writeFilesToVfs()
       writePlaygroundFiles()
 
       await maybeInstall()

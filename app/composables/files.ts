@@ -1,6 +1,6 @@
 import {type FileSystemTree} from '@webcontainer/api'
 import {getLanguage, loadHash, saveHash, toFSTree} from '~/helper'
-import {BROWSER_DEFAULT_FILES, VUE_DEFAULT_FILES, VITE_NODE_DEFAULT_FILES, NODE_DEFAULT_FILES} from '~/defaults'
+import {BROWSER_DEFAULT_FILES, VUE_DEFAULT_FILES, NODE_DEFAULT_FILES} from '~/defaults'
 
 export interface FsProvider {
   fs: {
@@ -14,7 +14,7 @@ const MODE_DEFAULTS: Record<string, Record<string, string>> = {
   'vue':       VUE_DEFAULT_FILES,
   'node':      NODE_DEFAULT_FILES,
 }
-const defaults = MODE_DEFAULTS[import.meta.env.VITE_PREVIEW_MODE] ?? VITE_NODE_DEFAULT_FILES
+const defaults = MODE_DEFAULTS[import.meta.env.VITE_PREVIEW_MODE] ?? NODE_DEFAULT_FILES
 
 export const useFiles = async (getWc: () => FsProvider | null) => {
   const initial = await loadHash() ?? {...defaults}

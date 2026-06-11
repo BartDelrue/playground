@@ -87,6 +87,18 @@ const CONSOLE_SCRIPT = `<script>
   console.info  = (...a) => _post('info',  a)
   console.warn  = (...a) => _post('warn',  a)
   console.error = (...a) => _post('error', a)
+  window.addEventListener('error', e => {
+    // Module files are served as blob: URLs whose names are opaque UUIDs —
+    // only the line number is meaningful to show in that case.
+    const loc = !e.filename ? ''
+      : e.filename.startsWith('blob:') ? ' (line ' + e.lineno + ')'
+      : ' (' + e.filename.split('/').pop() + ':' + e.lineno + ')'
+    _post('error', [e.message + loc])
+  })
+  window.addEventListener('unhandledrejection', e => {
+    const r = e.reason
+    _post('error', ['Unhandled promise rejection: ' + (r instanceof Error ? r.message : String(r))])
+  })
 })()
 <\/script>`
 

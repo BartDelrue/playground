@@ -13,7 +13,7 @@
     "dev:node": "nuxt dev --dotenv .env.node",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare",
+    "postinstall": "node copy-almostnode-worker.mjs && nuxt prepare",
     "test": "vitest",
     "test:watch": "vitest --watch",
     "test:coverage": "vitest --coverage",

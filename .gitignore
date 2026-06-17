@@ -26,4 +26,7 @@ logs
 # Test coverage
 coverage/
 
+# Generated on install by copy-almostnode-worker.mjs
+public/assets/runtime-worker-*.js
+
 .claude

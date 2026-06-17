@@ -42,7 +42,7 @@ export const useFiles = async (getWc: () => FsProvider | null) => {
 
     function deleteFile(fp: string): void {
         if (Object.keys(files).length <= 1) return
-        delete files[fp]
+        Reflect.deleteProperty(files, fp)
         if (activeFile.value === fp) activeFile.value = Object.keys(files)[0] ?? ''
     }
 

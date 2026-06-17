@@ -4,7 +4,7 @@ export function buildFileTree(paths: string[]): Record<string, FileNode | DirNod
   const root: Record<string, FileNode | DirNode> = {}
   for (const path of paths) {
     const parts = path.split('/')
-    let cur = root as Record<string, any>
+    let cur = root as Record<string, unknown>
     for (let i = 0; i < parts.length - 1; i++) {
       cur[parts[i]] ??= { type: 'dir', children: {} }
       cur = cur[parts[i]].children

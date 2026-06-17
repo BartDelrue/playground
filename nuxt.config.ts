@@ -42,12 +42,12 @@ export default defineNuxtConfig({
     // adds middleware after the server exists, sidestepping that path.
     // Still required as of @vue/repl 4.7.2 + vite 7.3.5 — recheck if either is upgraded.
     hooks: {
-        'vite:serverCreated'(server: any) {
+        'vite:serverCreated'(server) {
             const assetsDir = resolve('./node_modules/@vue/repl/dist/assets')
-            const handler = (req: any, res: any, next: () => void) => {
+            const handler = (req, res, next: () => void) => {
                 const url: string = req.url ?? ''
                 if (!url.startsWith('/_nuxt/assets/')) return next()
-                const filename = url.slice('/_nuxt/assets/'.length).split('?')[0]
+                const filename = url.slice('/_nuxt/assets/'.length).split('?')[0]!
                 const filePath = join(assetsDir, filename)
                 if (filename && existsSync(filePath)) {
                     res.setHeader('Content-Type', 'application/javascript; charset=utf-8')
@@ -87,8 +87,8 @@ export default defineNuxtConfig({
                     /import\s*\{([^}]+)\}\s*from\s*["']node:zlib["']/g,
                     (_: string, imports: string) => imports.split(',').map((spec: string) => {
                         const parts = spec.trim().split(/\s+as\s+/)
-                        const orig = parts[0].trim()
-                        const name = (parts[1] || parts[0]).trim()
+                        const orig = parts[0]!.trim()
+                        const name = (parts[1] || parts[0]!).trim()
                         if (orig === 'constants') return `const ${name}={Z_BEST_COMPRESSION:9,Z_BEST_SPEED:1,Z_DEFAULT_COMPRESSION:-1}`
                         return `const ${name}=()=>{throw new Error('${orig} not available in browser')}`
                     }).join(';')

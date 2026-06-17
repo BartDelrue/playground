@@ -59,10 +59,10 @@ const visibleFiles = computed(() =>
       />
 
       <AppDivider
+          v-model="sideBarPos"
           axis="x"
           :min="60"
           :max="420"
-          v-model="sideBarPos"
       />
 
       <!-- @vue/repl handles Monaco + Volar IntelliSense + live preview -->

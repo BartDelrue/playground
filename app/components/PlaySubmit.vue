@@ -6,7 +6,7 @@ const revealed = ref(false)
 const localKey = ref(key)
 const message = ref('')
 const id = useId()
-const isSuccess = ref<Boolean | undefined>()
+const isSuccess = ref<boolean | undefined>()
 
 watch(isSuccess, (newValue) => {
   if (newValue) setTimeout(() => isSuccess.value = undefined, 5*1000)
@@ -56,7 +56,7 @@ const handleSubmit = () => {
 </script>
 
 <template>
-  <form @submit.prevent="handleSubmit" class="playSubmit" :class="{fail: isSuccess === false, success: isSuccess === true}">
+  <form class="playSubmit" :class="{fail: isSuccess === false, success: isSuccess === true}" @submit.prevent="handleSubmit">
     <label class="label" :for="id">
       Exam key
     </label>

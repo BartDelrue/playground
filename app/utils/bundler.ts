@@ -1,7 +1,7 @@
 const CDN = 'https://esm.sh'
 
-let _ts: Promise<any> | null = null
-// @ts-ignore
+let _ts: Promise<unknown> | null = null
+// @ts-expect-error don't touch it
 const getTs = () => (_ts ??= import(/* @vite-ignore */ 'https://esm.sh/typescript'))
 
 export async function transpileTs(source: string, tsx = false): Promise<string> {
@@ -109,7 +109,7 @@ const CONSOLE_SCRIPT = `<script>
     _post('error', ['Unhandled promise rejection: ' + (r instanceof Error ? r.message : String(r))])
   })
 })()
-<\/script>`
+</script>`
 
 // window.top reaches the Nuxt app regardless of any intermediate proxy frames
 

@@ -19,7 +19,7 @@ async function getKeyUser(key: string) {
             .getItem<{ name: string, key: string }[]>('allowed-keys')
 
     if (!allowedKeys)
-        throw createError({statusCode: 500, statusMessage: 'Could not verify allowed keys' })
+        throw createError({statusCode: 500, statusMessage: 'Could not verify allowed keys'})
 
     const keyUser = allowedKeys.find((entry) => entry.key === key)
 
@@ -56,9 +56,8 @@ export default defineEventHandler({
             return {
                 message: `URL saved as: ${resolvedKey}`
             }
-        } catch (err) {
+        } catch {
             throw createError({statusCode: 500, statusMessage: 'Storage error'})
         }
-
     }
 })

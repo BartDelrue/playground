@@ -9,7 +9,7 @@ const { nodes, activeFile } = defineProps<{
   activeFile: string
 }>()
 
-const emit = defineEmits<{
+defineEmits<{
   select: [path: string]
   delete: [path: string]
 }>()

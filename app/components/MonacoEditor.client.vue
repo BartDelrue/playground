@@ -6,10 +6,10 @@ import {getLanguage} from '~/helper'
 
 setupMonacoVue(monaco)
 
-const {filename = '', modelValue = '', language = 'javascript', allFiles} = defineProps<{
-  filename: string
-  modelValue: string
-  language: string
+const {filename = '', modelValue = '', language = 'javascript', allFiles = {}} = defineProps<{
+  filename?: string
+  modelValue?: string
+  language?: string
   allFiles?: Record<string, string>
 }>()
 const emit = defineEmits<{ 'update:modelValue': [value: string] }>()
@@ -90,7 +90,7 @@ watch(() => language, lang => {
 </script>
 
 <template>
-  <div style="width:100%;height:100%" ref="el"></div>
+  <div ref="el" style="width:100%;height:100%"/>
 </template>
 
 <style scoped></style>

@@ -289,7 +289,7 @@ export const useAlmostNode = (files: Record<string, string>) => {
     try {
       if (!container) {
         container = createContainer({
-          // @ts-ignore
+          // @ts-expect-error don't touch it
           dangerouslyAllowSameOrigin: true,
           onServerReady: (port, url) => {
             previewUrl.value = url

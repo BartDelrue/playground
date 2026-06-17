@@ -47,13 +47,13 @@ onMounted(() => {
             class="input"
             :placeholder="placeholder ?? 'client/src/styles.css'"
             type="text"
-        />
+        >
         <button type="submit" class="add-file-btn" title="Add file">+</button>
       </div>
     </form>
     <div v-if="showPlaySubmit" class="sidebar-accent">
       <h2 class="sidebar-header">Submit</h2>
-      <PlaySubmit class="playSubmit" :examKey="submitKey"/>
+      <PlaySubmit class="playSubmit" :exam-key="submitKey"/>
     </div>
   </aside>
 </template>

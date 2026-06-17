@@ -57,10 +57,10 @@ watch(isBooting, v => {
       />
 
       <AppDivider
+          v-model="sideBarPos"
           axis="x"
           :min="60"
           :max="420"
-          v-model="sideBarPos"
       />
 
       <div class="center-col">
@@ -76,20 +76,20 @@ watch(isBooting, v => {
         </section>
 
         <AppDivider
+            v-model="consolePos"
             axis="y"
             :min="40"
             :max="600"
             :direction="-1"
-            v-model="consolePos"
         />
 
         <section class="terminal-pane" :style="{ height: consolePos + 'px' }">
           <div class="pane-header">
             <span>Console</span>
             <button
-                @click="clearConsole"
-                title="clear" class="del-btn">
-              <Icon name="lucide:trash-2"></Icon>
+                title="clear"
+                class="del-btn" @click="clearConsole">
+              <Icon name="lucide:trash-2"/>
             </button>
           </div>
           <div ref="consoleEl" class="terminal-body">
@@ -103,11 +103,11 @@ watch(isBooting, v => {
 
         <AppDivider
             v-if="hasTerminal"
+            v-model="terminalPos"
             axis="y"
             :min="40"
             :max="600"
             :direction="-1"
-            v-model="terminalPos"
         />
         <section
             v-if="hasTerminal"
@@ -124,11 +124,11 @@ watch(isBooting, v => {
       </div>
 
       <AppDivider
+          v-model="previewPos"
           axis="x"
           :min="150"
           :max="1900"
           :direction="-1"
-          v-model="previewPos"
           @start="dragging = true"
           @end="dragging = false"
       />

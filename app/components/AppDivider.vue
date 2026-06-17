@@ -66,13 +66,13 @@ onUnmounted(onMouseUp)
       :class="{ active, 'v-divider': axis === 'x', 'h-divider': axis === 'y'}"
       @mousedown.prevent="startDrag">
     <button
+        class="dividerButton"
+        aria-label="resize"
+        aria-description="use arrow keys"
         @keydown.left="move('left')"
         @keydown.right="move('right')"
         @keydown.up="move('up')"
-        @keydown.down="move('down')"
-        class="dividerButton"
-        aria-label="resize"
-        aria-description="use arrow keys"/>
+        @keydown.down="move('down')"/>
   </div>
 </template>
 

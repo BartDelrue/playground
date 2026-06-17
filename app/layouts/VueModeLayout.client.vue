@@ -8,6 +8,8 @@ import AppHeader from "~/components/AppHeader.vue";
 import SideBar from "~/components/SideBar.vue";
 import AppDivider from "~/components/AppDivider.vue";
 
+defineProps<{ displayMode?: DisplayMode }>()
+
 const sideBarPos = ref(200)
 
 const {importMap: vueImportMap, vueVersion} = useVueImportMap()
@@ -43,41 +45,73 @@ const visibleFiles = computed(() =>
 
 <template>
   <div class="app-root">
-    <AppHeader title="🟢 Vue Playground" :active-file="store.activeFilename"/>
 
-    <main class="workspace">
+    <template v-if="displayMode === 'minimal'">
+      <main class="workspace">
+        <Repl
+            :store="store"
+            :editor="Monaco"
+            theme="dark"
+            :show-compile-output="false"
+            :show-import-map="false"
+            :show-ts-config="false"
+            style="flex:1;overflow:hidden;min-width:0; --header-height: 0%"
+        />
+      </main>
+    </template>
+
+    <template v-else-if="displayMode === 'vertical'">
+      <main class="workspace">
+        <Repl
+            :store="store"
+            :editor="Monaco"
+            theme="dark"
+            layout="vertical"
+            :show-compile-output="false"
+            :show-import-map="false"
+            :show-ts-config="false"
+            style="flex:1;overflow:hidden;min-width:0; --header-height: 0%"
+        />
+      </main>
+    </template>
+
+    <template v-else>
+      <AppHeader title="🟢 Vue Playground" :active-file="store.activeFilename"/>
+      <main class="workspace">
 
 
-      <SideBar
-          :active-file="store.activeFilename"
-          :style="{ width: sideBarPos + 'px' }"
-          :files="visibleFiles"
-          placeholder="src/AppComponent.vue"
-          @update:active-file="store.setActive($event)"
-          @add="store.addFile($event)"
-          @delete="store.deleteFile($event)"
-      />
+        <SideBar
+            :active-file="store.activeFilename"
+            :style="{ width: sideBarPos + 'px' }"
+            :files="visibleFiles"
+            placeholder="src/AppComponent.vue"
+            @update:active-file="store.setActive($event)"
+            @add="store.addFile($event)"
+            @delete="store.deleteFile($event)"
+        />
 
-      <AppDivider
-          v-model="sideBarPos"
-          axis="x"
-          :min="60"
-          :max="420"
-      />
+        <AppDivider
+            v-model="sideBarPos"
+            axis="x"
+            :min="60"
+            :max="420"
+        />
 
-      <!-- @vue/repl handles Monaco + Volar IntelliSense + live preview -->
-      <Repl
-          :store="store"
-          :editor="Monaco"
-          theme="dark"
-          :show-compile-output="false"
-          :show-import-map="false"
-          :show-ts-config="false"
-          style="flex:1;overflow:hidden;min-width:0; --header-height: 0%"
+        <!-- @vue/repl handles Monaco + Volar IntelliSense + live preview -->
+        <Repl
+            :store="store"
+            :editor="Monaco"
+            theme="dark"
+            :show-compile-output="false"
+            :show-import-map="false"
+            :show-ts-config="false"
+            style="flex:1;overflow:hidden;min-width:0; --header-height: 0%"
 
-      />
+        />
 
-    </main>
+      </main>
+    </template>
+
   </div>
 </template>
 

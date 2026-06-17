@@ -103,26 +103,6 @@ body {
   overflow: hidden;
 }
 
-/* ── Drag dividers ───────────────────────────────────────────────────────── */
-.v-divider,
-.h-divider {
-  flex-shrink: 0;
-  background: var(--surface0);
-  transition: background var(--t-fast);
-
-  &:hover, &.active { background: var(--blue); }
-}
-
-.v-divider {
-  inline-size: var(--divider-size);
-  cursor: col-resize;
-}
-
-.h-divider {
-  block-size: var(--divider-size);
-  cursor: row-resize;
-}
-
 /* ── Center column ───────────────────────────────────────────────────────── */
 .center-col {
   flex: 1;
@@ -201,6 +181,9 @@ body {
 
 .flex {
   display: flex;
+}
+.flex-col {
+  flex-direction: column;
 }
 .g-1 {
   gap: .8em;

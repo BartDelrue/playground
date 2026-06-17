@@ -4,8 +4,14 @@
 // almostnode's prebuilt worker into public/assets/ (served as-is in dev and
 // bundled into the build output for production).
 //
-// The worker ships under a content-hashed name, so this re-runs on every install
-// and prunes stale copies left behind by an almostnode upgrade.
+// almostnode also registers a service worker from a hardcoded absolute URL:
+// `navigator.serviceWorker.register('/__sw__.js')`. That likewise only resolves
+// from the web root, so we copy almostnode's dist/__sw__.js into public/ here
+// too — keeping it in sync on every almostnode upgrade rather than maintaining a
+// hand-placed copy. node-mode preview is broken without it.
+//
+// The runtime worker ships under a content-hashed name, so this re-runs on every
+// install and prunes stale copies left behind by an almostnode upgrade.
 import { existsSync, mkdirSync, readdirSync, copyFileSync, rmSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -16,7 +22,8 @@ const here = dirname(fileURLToPath(import.meta.url))
 
 // almostnode's exports map blocks package.json, so resolve the main entry (which
 // lives in dist/) and find the sibling assets/ dir.
-const srcDir = join(dirname(require.resolve('almostnode')), 'assets')
+const distDir = dirname(require.resolve('almostnode'))
+const srcDir = join(distDir, 'assets')
 const destDir = join(here, 'public', 'assets')
 
 const isWorker = (f) => /^runtime-worker-.*\.js$/.test(f)
@@ -45,4 +52,13 @@ for (const f of readdirSync(destDir).filter(isWorker)) {
 for (const f of workers) {
   copyFileSync(join(srcDir, f), join(destDir, f))
   console.log(`copy-almostnode-worker: copied ${f} -> public/assets/`)
+}
+
+// Service worker: fixed name (not content-hashed), served at the web root.
+const swSrc = join(distDir, '__sw__.js')
+if (existsSync(swSrc)) {
+  copyFileSync(swSrc, join(here, 'public', '__sw__.js'))
+  console.log('copy-almostnode-worker: copied __sw__.js -> public/')
+} else {
+  console.warn('copy-almostnode-worker: __sw__.js not found:', swSrc)
 }

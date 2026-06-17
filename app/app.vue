@@ -11,8 +11,11 @@ const Layout = defineAsyncComponent(
             : import('~/layouts/PlaygroundLayout.vue')
         : () => Promise.resolve({default: {render: () => null}})
 )
+
+const query = useRoute().query
+const displayMode: DisplayMode | undefined = (query.displaymode || query.displayMode) as DisplayMode | undefined
 </script>
 
 <template>
-  <component :is="Layout"/>
+  <component :is="Layout" :display-mode/>
 </template>

@@ -76,8 +76,10 @@ export default defineNuxtConfig({
         // gzip/rg commands. Those paths are dead code for us, but Rollup still can't resolve
         // gunzipSync against Vite's __vite-browser-external stub and aborts the build. Fix: rewrite
         // the node:zlib import to inline (throwing) stubs before Vite resolves the module.
+        // Applies in every mode — just-bash is pulled in across browser/vue/node builds, and the
+        // transform self-gates on `just-bash`/`node:zlib` so it's a no-op when it isn't in the graph.
         // Still required as of just-bash 2.14.5 — recheck if it stops importing node:zlib.
-        plugins: mode === 'node' ? [{
+        plugins: [{
             name: 'just-bash-zlib-stub',
             enforce: 'pre' as const,
             transform(code: string, id: string) {
@@ -94,6 +96,6 @@ export default defineNuxtConfig({
                     }).join(';')
                 )
             },
-        }] : [],
+        }],
     }
 })

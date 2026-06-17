@@ -81,4 +81,25 @@ details[open] > .tree-summary::before { content: '▾ ' }
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+.file-item {
+  padding-block: 5px;
+  padding-inline: var(--space-3) var(--space-2);
+  cursor: pointer;
+  font-size: .8rem;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  user-select: none;
+  transition: background var(--t-fast);
+
+  &:hover { background: var(--surface0); }
+  &.active { background: var(--surface1); color: var(--blue); }
+
+  & .del-btn {
+    visibility: hidden;
+    &:focus-visible { visibility: visible; }
+  }
+  &:hover .del-btn { visibility: visible; }
+}
 </style>

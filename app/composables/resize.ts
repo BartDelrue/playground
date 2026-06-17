@@ -18,7 +18,6 @@ interface DragState {
 }
 
 export function usePaneResize<T extends string>(configs: PaneConfig<T>[]) {
-  // Build a reactive object of { [id]: Ref<number> } so refs auto-unwrap in templates
   const refs = Object.fromEntries(
     configs.map(c => [c.id, ref(c.initial)])
   ) as { [K in T]: Ref<number> }

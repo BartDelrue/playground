@@ -1,4 +1,5 @@
 import {makePreviewBase, buildModuleUrls, buildHtml, transpileTs} from '~/utils/bundler'
+import type {BindingMetadata} from "@vue/compiler-sfc";
 
 let _compiler: Promise<typeof import('@vue/compiler-sfc')> | null = null
 const getCompiler = () => (_compiler ??= import('@vue/compiler-sfc'))
@@ -12,7 +13,7 @@ async function compileSfc(filename: string, source: string): Promise<string> {
   const hasScript = !!(descriptor.script || descriptor.scriptSetup)
   const script = hasScript
     ? compileScript(descriptor, {id, genDefaultAs: '__sfc__'})
-    : {content: 'const __sfc__ = {}', bindings: {} as Record<string, string>}
+    : {content: 'const __sfc__ = {}', bindings: {} as BindingMetadata}
 
   const isScoped = descriptor.styles.some(s => s.scoped)
   const tmpl = descriptor.template
@@ -56,7 +57,7 @@ export function useVuePreview(files: Record<string, string>) {
       const htmlSrc = files[htmlName] ?? '<html><head></head><body><div id="app"></div></body></html>'
       previewUrl.value = mkblob(buildHtml(htmlSrc, htmlName, files, urlMap), 'text/html')
     } catch (e) {
-      pushLog(String(e), true)
+      pushLog(String(e), LogType.ERROR)
     }
   }
 

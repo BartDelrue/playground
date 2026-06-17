@@ -8,7 +8,7 @@ const appTitle = TITLES[import.meta.env.VITE_PREVIEW_MODE] ?? '⚡ Playground'
 const hasTerminal = ['node'].includes(import.meta.env.VITE_PREVIEW_MODE)
 
 import {usePaneResize} from '~/composables/resize'
-import {usePreview} from '~/composables/preview'
+import {usePreview} from '~/composables/previews/preview'
 import {useLogs} from '~/composables/log'
 import {useFiles} from '~/composables/files'
 

@@ -7,8 +7,8 @@ const isVueMode = import.meta.env.VITE_PREVIEW_MODE === 'vue'
 const Layout = defineAsyncComponent(
     import.meta.client
         ? () => isVueMode
-            ? import('~/components/VueModeLayout.client.vue')
-            : import('~/components/PlaygroundLayout.vue')
+            ? import('~/layouts/VueModeLayout.client.vue')
+            : import('~/layouts/PlaygroundLayout.vue')
         : () => Promise.resolve({default: {render: () => null}})
 )
 </script>

@@ -1,5 +1,12 @@
 <script setup lang="ts">
 
+import AppHeader from "~/components/AppHeader.vue";
+import {usePreview} from '~/composables/previews/preview'
+import {useLogs} from '~/composables/log'
+import {useFiles} from '~/composables/files'
+import SideBar from "~/components/SideBar.vue";
+import AppDivider from "~/components/AppDivider.vue";
+
 const TITLES: Record<string, string> = {
   'browser': '🌐 Browser Playground',
   'node': '📦 Node Playground',
@@ -7,21 +14,15 @@ const TITLES: Record<string, string> = {
 const appTitle = TITLES[import.meta.env.VITE_PREVIEW_MODE] ?? '⚡ Playground'
 const hasTerminal = ['node'].includes(import.meta.env.VITE_PREVIEW_MODE)
 
-import {usePaneResize} from '~/composables/resize'
-import {usePreview} from '~/composables/previews/preview'
-import {useLogs} from '~/composables/log'
-import {useFiles} from '~/composables/files'
-
-const {sizes, activeDivider, startDrag} = usePaneResize([
-  {id: 'sidebar', initial: 200, min: 120, max: 320, axis: 'x', direction: 1},
-  {id: 'preview', initial: 420, min: 150, max: 1900, axis: 'x', direction: -1},
-  {id: 'terminal', initial: 90, min: 40, max: 600, axis: 'y', direction: -1},
-  {id: 'console', initial: 90, min: 40, max: 600, axis: 'y', direction: -1},
-])
+const dragging = ref(false)
+const sideBarPos = ref(200)
+const consolePos = ref(90)
+const terminalPos = ref(90)
+const previewPos = ref(420)
 
 const {logs, pushLog, clearLog} = useLogs('terminalEl')
 const {logs: consoleLogs, clearLog: clearConsole} = useConsole('consoleEl')
-const {files, activeFile, activeLang, newFileName, addFile, deleteFile, onEditorChange, fsTree} =
+const {files, activeFile, activeLang, addFile, deleteFile, onEditorChange, fsTree} =
     await useFiles(() => wc.value)
 const {isBooting, bootStatus, previewUrl, previewKey, wc, onLog, boot, restart} =
     await usePreview(files, fsTree)
@@ -29,66 +30,41 @@ const {isBooting, bootStatus, previewUrl, previewKey, wc, onLog, boot, restart} 
 onLog(pushLog)
 onMounted(boot)
 
-const showPlaySubmit = ref(false)
-onMounted(() => showPlaySubmit.value = 'key' in useRoute().query)
-
 watch(isBooting, v => {
   if (v) {
     clearLog();
     clearConsole()
   }
 })
-
-const fileTree = computed(() => buildFileTree(Object.keys(files)))
 </script>
 
 <template>
   <div class="app-root">
 
-    <header class="toolbar">
-      <h1 class="toolbar-title">{{ appTitle }}</h1>
-      <span class="toolbar-file">{{ activeFile }}</span>
+    <AppHeader :title="appTitle" :active-file="activeFile">
       <button class="restart-btn" :disabled="isBooting" @click="restart">
         {{ isBooting ? '…' : '↺ Restart' }}
       </button>
       <span v-if="bootStatus" class="toolbar-status">{{ bootStatus }}</span>
-    </header>
+    </AppHeader>
 
     <main class="workspace">
 
-      <aside class="sidebar" :style="{ width: sizes.sidebar + 'px' }">
-        <h2 class="sidebar-header">Files</h2>
-        <div class="file-list">
-          <FileTree
-              :nodes="fileTree"
-              :active-file="activeFile"
-              @select="activeFile = $event"
-              @delete="deleteFile($event)"
-          />
-        </div>
-        <form class="file-add" @submit.prevent="addFile">
-          <label for="addFile" class="label">Add File</label>
-          <div class="flex g-1">
-            <input
-                id="addFile"
-                class="input"
-                v-model="newFileName"
-                :placeholder="'client/src/styles.css'"
-                type="text"
-            />
-            <button type="submit" class="add-file-btn" title="Add file">+</button>
-          </div>
-        </form>
-        <div class="sidebar-accent" v-if="showPlaySubmit">
-          <h2 class="sidebar-header">Submit</h2>
-          <PlaySubmit class="playSubmit"/>
-        </div>
+      <SideBar
+          v-model:active-file="activeFile"
+          :style="{ width: sideBarPos + 'px' }"
+          :files="Object.keys(files)"
+          placeholder="client/src/styles.css"
+          @add="addFile($event)"
+          @delete="deleteFile($event)"
+      />
 
-      </aside>
-
-      <div
-          class="v-divider" :class="{ active: activeDivider === 'sidebar' }"
-          @mousedown.prevent="startDrag($event, 'sidebar')"/>
+      <AppDivider
+          axis="x"
+          :min="60"
+          :max="420"
+          v-model="sideBarPos"
+      />
 
       <div class="center-col">
         <section class="editor-pane">
@@ -102,11 +78,15 @@ const fileTree = computed(() => buildFileTree(Object.keys(files)))
           />
         </section>
 
-        <div
-            class="h-divider" :class="{ active: activeDivider === 'console' }"
-            @mousedown.prevent="startDrag($event, 'console')"/>
+        <AppDivider
+            axis="y"
+            :min="40"
+            :max="600"
+            :direction="-1"
+            v-model="consolePos"
+        />
 
-        <section class="terminal-pane" :style="{ height: sizes.console + 'px' }">
+        <section class="terminal-pane" :style="{ height: consolePos + 'px' }">
           <div class="pane-header">
             <span>Console</span>
             <button
@@ -124,14 +104,17 @@ const fileTree = computed(() => buildFileTree(Object.keys(files)))
           </div>
         </section>
 
-        <div
+        <AppDivider
             v-if="hasTerminal"
-            class="h-divider" :class="{ active: activeDivider === 'terminal' }"
-            @mousedown.prevent="startDrag($event, 'terminal')"/>
-
+            axis="y"
+            :min="40"
+            :max="600"
+            :direction="-1"
+            v-model="terminalPos"
+        />
         <section
             v-if="hasTerminal"
-            class="terminal-pane" :style="{ height: sizes.terminal + 'px' }">
+            class="terminal-pane" :style="{ height: terminalPos + 'px' }">
           <div class="pane-header">terminal</div>
           <div ref="terminalEl" class="terminal-body">
             <div
@@ -143,11 +126,17 @@ const fileTree = computed(() => buildFileTree(Object.keys(files)))
         </section>
       </div>
 
-      <div
-          class="v-divider" :class="{ active: activeDivider === 'preview' }"
-          @mousedown.prevent="startDrag($event, 'preview')"/>
+      <AppDivider
+          axis="x"
+          :min="150"
+          :max="1900"
+          :direction="-1"
+          v-model="previewPos"
+          @start="dragging = true"
+          @end="dragging = false"
+      />
 
-      <aside class="preview-pane" :style="{ width: sizes.preview + 'px' }">
+      <aside class="preview-pane" :style="{ width: previewPos + 'px' }">
         <div class="pane-header">
           Preview
           <span v-if="previewUrl" class="preview-url">{{ previewUrl }}</span>
@@ -159,7 +148,7 @@ const fileTree = computed(() => buildFileTree(Object.keys(files)))
               :src="previewUrl"
               :title="activeFile + ' preview'"
               class="preview-iframe"
-              :style="activeDivider ? 'pointer-events:none' : ''"
+              :style="dragging ? 'pointer-events:none' : ''"
           />
           <div v-else class="preview-placeholder">
             <span class="placeholder-icon">🚀</span>

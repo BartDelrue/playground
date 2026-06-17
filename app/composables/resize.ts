@@ -44,6 +44,10 @@ export function usePaneResize<T extends string>(configs: PaneConfig<T>[]) {
     document.addEventListener('mouseup', onMouseUp)
   }
 
+  function onArrow(direction: 'left' | 'right'): void {
+
+  }
+
   function onMouseMove(e: MouseEvent): void {
     if (!drag) return
     const current = drag.axis === 'x' ? e.clientX : e.clientY
@@ -62,5 +66,5 @@ export function usePaneResize<T extends string>(configs: PaneConfig<T>[]) {
 
   onUnmounted(onMouseUp)
 
-  return {sizes, activeDivider, startDrag}
+  return {sizes, activeDivider, startDrag, onArrow}
 }

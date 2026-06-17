@@ -35,8 +35,7 @@ export const useFiles = async (getWc: () => FsProvider | null) => {
 
     const newFileName = ref('')
 
-    async function addFile(): Promise<void> {
-        const name = toValue(newFileName)
+    async function addFile(name: string = toValue(newFileName)): Promise<void> {
         if (!name || name in files) return
         files[name] = ''
         activeFile.value = name

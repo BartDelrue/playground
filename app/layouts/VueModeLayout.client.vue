@@ -4,11 +4,11 @@ import appVueDefault  from '~/defaults/vue/src/App.vue?raw'
 import defaultImports from '~/defaults/vue/importmap.json'
 import Monaco from '@vue/repl/monaco-editor'
 import '@vue/repl/style.css'
-import {usePaneResize} from '~/composables/resize'
+import AppHeader from "~/components/AppHeader.vue";
+import SideBar from "~/components/SideBar.vue";
+import AppDivider from "~/components/AppDivider.vue";
 
-const {sizes, activeDivider, startDrag} = usePaneResize([
-  {id: 'sidebar', initial: 200, min: 120, max: 320, axis: 'x', direction: 1},
-])
+const sideBarPos = ref(200)
 
 const {importMap: vueImportMap, vueVersion} = useVueImportMap()
 const importMap = computed(() => mergeImportMap(vueImportMap.value, defaultImports))
@@ -34,66 +34,36 @@ watchEffect(() => {
     : current)
 })
 
-const fileTree = computed(() =>
-  buildFileTree(
-    Object.entries(store.files)
-      .filter(([, f]) => !f.hidden)
-      .map(([name]) => name)
-  )
+const visibleFiles = computed(() =>
+  Object.entries(store.files)
+    .filter(([, f]) => !f.hidden)
+    .map(([name]) => name)
 )
-
-const newFileName = ref('')
-const addFile = () => {
-  if (!newFileName.value) return
-  store.addFile(toValue(newFileName))
-}
-
-const showPlaySubmit = ref(false)
-onMounted(() => showPlaySubmit.value = 'key' in useRoute().query)
-
 </script>
 
 <template>
   <div class="app-root">
-    <header class="toolbar">
-      <h1 class="toolbar-title">🟢 Vue Playground</h1>
-      <span class="toolbar-file">{{ store.activeFilename }}</span>
-    </header>
+    <AppHeader title="🟢 Vue Playground" :active-file="store.activeFilename"/>
 
     <main class="workspace">
 
-      <aside class="sidebar" :style="{ width: sizes.sidebar + 'px' }">
-        <h2 class="sidebar-header">Files</h2>
-        <div class="file-list">
-          <FileTree
-              :nodes="fileTree"
-              :active-file="store.activeFilename"
-              @select="store.setActive($event)"
-              @delete="store.deleteFile($event)"
-          />
-        </div>
-        <form class="file-add" @submit.prevent="addFile">
-          <label for="addFile" class="label">Add File</label>
-          <div class="flex g-1">
-            <input
-                id="addFile"
-                class="input"
-                v-model="newFileName"
-                :placeholder="'src/AppComponent.vue'"
-                type="text"
-            />
-            <button type="submit" class="add-file-btn" title="Add file">+</button>
-          </div>
-        </form>
-        <div class="sidebar-accent" v-if="showPlaySubmit">
-          <h2 class="sidebar-header">Submit</h2>
-          <PlaySubmit class="playSubmit"/>
-        </div>
-      </aside>
 
-      <div
-          class="v-divider" :class="{ active: activeDivider === 'sidebar' }"
-          @mousedown.prevent="startDrag($event, 'sidebar')"/>
+      <SideBar
+          :active-file="store.activeFilename"
+          :style="{ width: sideBarPos + 'px' }"
+          :files="visibleFiles"
+          placeholder="src/AppComponent.vue"
+          @update:active-file="store.setActive($event)"
+          @add="store.addFile($event)"
+          @delete="store.deleteFile($event)"
+      />
+
+      <AppDivider
+          axis="x"
+          :min="60"
+          :max="420"
+          v-model="sideBarPos"
+      />
 
       <!-- @vue/repl handles Monaco + Volar IntelliSense + live preview -->
       <Repl

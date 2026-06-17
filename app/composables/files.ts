@@ -1,6 +1,6 @@
 import {type FileSystemTree} from '@webcontainer/api'
 import {getLanguage, loadHash, saveHash, toFSTree} from '~/helper'
-import {BROWSER_DEFAULT_FILES, VUE_DEFAULT_FILES, NODE_DEFAULT_FILES} from '~/defaults'
+import {BROWSER_DEFAULT_FILES, VUE_DEFAULT_FILES, NODE_DEFAULT_FILES} from '~/defaults/defaults'
 
 export interface FsProvider {
   fs: {

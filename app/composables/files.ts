@@ -1,5 +1,4 @@
-import {type FileSystemTree} from '@webcontainer/api'
-import {getLanguage, loadHash, saveHash, toFSTree} from '~/helper'
+import {getLanguage, loadHash, saveHash} from '~/helper'
 import {BROWSER_DEFAULT_FILES, VUE_DEFAULT_FILES, NODE_DEFAULT_FILES} from '~/defaults/defaults'
 
 export interface FsProvider {
@@ -68,7 +67,5 @@ export const useFiles = async (getWc: () => FsProvider | null) => {
         }, 300))
     }
 
-    const fsTree = (): FileSystemTree => toFSTree({...files})
-
-    return {files, activeFile, activeLang, addFile, deleteFile, onEditorChange, fsTree, newFileName}
+    return {files, activeFile, activeLang, addFile, deleteFile, onEditorChange, newFileName}
 }

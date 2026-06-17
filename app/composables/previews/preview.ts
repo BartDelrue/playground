@@ -1,6 +1,4 @@
-import type {FileSystemTree} from '@webcontainer/api'
-
-export async function usePreview(files: Record<string, string>, fsTree: () => FileSystemTree) {
+export async function usePreview(files: Record<string, string>) {
     const mode = import.meta.env.VITE_PREVIEW_MODE
 
     if (mode === 'browser') {

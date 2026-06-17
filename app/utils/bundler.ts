@@ -111,8 +111,7 @@ const CONSOLE_SCRIPT = `<script>
 })()
 <\/script>`
 
-// window.top reaches the Nuxt app regardless of intermediate proxy frames
-// (WebContainer wraps the preview in its own frame layer)
+// window.top reaches the Nuxt app regardless of any intermediate proxy frames
 
 export function buildHtml(
   source: string,

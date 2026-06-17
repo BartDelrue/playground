@@ -1,6 +1,9 @@
 <script setup lang="ts">
+
+const {examKey: key = ''} = defineProps<{examKey?: string}>()
+
 const revealed = ref(false)
-const key = ref(useRoute().query.exam)
+const localKey = ref(key)
 const message = ref('')
 const id = useId()
 const isSuccess = ref<Boolean | undefined>()
@@ -13,7 +16,7 @@ const handleSubmit = () => {
 
   const stamp = `[${new Date().toLocaleTimeString()}] `
 
-  if (!key.value) {
+  if (!localKey.value) {
     message.value = stamp + 'key is required!\n\n' + message.value
     isSuccess.value = false
     return
@@ -35,7 +38,7 @@ const handleSubmit = () => {
       "Content-Type": "Application/JSON"
     },
     body: JSON.stringify({
-      key: key.value,
+      key: localKey.value,
       url: location.href
     })
   }).then(r => {
@@ -58,7 +61,7 @@ const handleSubmit = () => {
       Exam key
     </label>
     <div class="flex g-1">
-      <input :id="id" v-model="key" class="input" :class="{ masked: !revealed}" autocomplete="new-password">
+      <input :id="id" v-model="localKey" class="input" :class="{ masked: !revealed}" autocomplete="new-password">
       <button
           type="button" class="add-file-btn" title="toggle reveal" @mousedown="revealed = true"
           @mouseup="revealed = false">

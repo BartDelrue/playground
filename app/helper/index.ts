@@ -1,5 +1,3 @@
-import {type FileSystemTree, type DirectoryNode} from '@webcontainer/api'
-
 export function getLanguage(filepath: string): string {
   const ext = (filepath.split('.').pop() ?? '').toLowerCase();
   return ({
@@ -10,21 +8,6 @@ export function getLanguage(filepath: string): string {
     vue: 'vue', svelte: 'html',
     sh: 'shell', py: 'python',
   } as Record<string, string>)[ext] ?? 'plaintext';
-}
-
-export function toFSTree(files: Record<string, string>): FileSystemTree {
-  const tree: FileSystemTree = {};
-  for (const [filepath, contents] of Object.entries(files)) {
-    const parts = filepath.split('/');
-    let node: FileSystemTree = tree;
-    for (let i = 0; i < parts.length - 1; i++) {
-      const key = parts[i] as string;
-      if (!node[key] || !('directory' in node[key])) node[key] = {directory: {}};
-      node = (node[key] as DirectoryNode).directory;
-    }
-    node[parts.at(-1) as string] = {file: {contents}};
-  }
-  return tree;
 }
 
 export async function saveHash(snapshot: Record<string, string>): Promise<void> {

@@ -23,9 +23,6 @@ importers:
       '@vue/repl':
         specifier: ^4.7.2
         version: 4.7.2
-      '@webcontainer/api':
-        specifier: ^1.6.4
-        version: 1.6.4
       almostnode:
         specifier: ^0.2.14
         version: 0.2.14(react@19.2.7)(rollup@4.61.1)(vite@7.3.5(@types/node@25.9.1)(jiti@2.7.0)(terser@5.48.0)(yaml@2.9.0))
@@ -2166,9 +2163,6 @@ packages:
     peerDependenciesMeta:
       '@vue/server-renderer':
         optional: true
-
-  '@webcontainer/api@1.6.4':
-    resolution: {integrity: sha512-r9sHCXg1FcC1AMgppGwAc0vYWaQhqvg282cnsuPbJEzYnWifAdCVvg+8ngJUEHyHcomhJJp+/zuytite4ITHLw==}
 
   '@xterm/addon-fit@0.11.0':
     resolution: {integrity: sha512-jYcgT6xtVYhnhgxh3QgYDnnNMYTcf8ElbxxFzX0IZo+vabQqSPAjC3c1wJrKB5E19VwQei89QCiZZP86DCPF7g==}
@@ -7107,8 +7101,6 @@ snapshots:
       vue-component-type-helpers: 3.3.3
     optionalDependencies:
       '@vue/server-renderer': 3.5.35(vue@3.5.35(typescript@6.0.3))
-
-  '@webcontainer/api@1.6.4': {}
 
   '@xterm/addon-fit@0.11.0': {}
 

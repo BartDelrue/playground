@@ -7,11 +7,8 @@ import {useFiles} from '~/composables/files'
 import SideBar from "~/components/SideBar.vue";
 import AppDivider from "~/components/AppDivider.vue";
 
-const TITLES: Record<string, string> = {
-  'browser': '🌐 Browser Playground',
-  'node': '📦 Node Playground',
-}
-const appTitle = TITLES[import.meta.env.VITE_PREVIEW_MODE] ?? '⚡ Playground'
+const appTitle = import.meta.env.VITE_PREVIEW_MODE === 'browser' ?  '🌐 Browser Playground' : '📦 Node Playground'
+const placeholder = import.meta.env.VITE_PREVIEW_MODE === 'browser' ?  '' : 'client/src/styles.css'
 const hasTerminal = ['node'].includes(import.meta.env.VITE_PREVIEW_MODE)
 
 const dragging = ref(false)
@@ -22,10 +19,10 @@ const previewPos = ref(420)
 
 const {logs, pushLog, clearLog} = useLogs('terminalEl')
 const {logs: consoleLogs, clearLog: clearConsole} = useConsole('consoleEl')
-const {files, activeFile, activeLang, addFile, deleteFile, onEditorChange, fsTree} =
+const {files, activeFile, activeLang, addFile, deleteFile, onEditorChange} =
     await useFiles(() => wc.value)
 const {isBooting, bootStatus, previewUrl, previewKey, wc, onLog, boot, restart} =
-    await usePreview(files, fsTree)
+    await usePreview(files)
 
 onLog(pushLog)
 onMounted(boot)
@@ -54,7 +51,7 @@ watch(isBooting, v => {
           v-model:active-file="activeFile"
           :style="{ width: sideBarPos + 'px' }"
           :files="Object.keys(files)"
-          placeholder="client/src/styles.css"
+          :placeholder
           @add="addFile($event)"
           @delete="deleteFile($event)"
       />

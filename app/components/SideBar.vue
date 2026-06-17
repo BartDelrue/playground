@@ -21,7 +21,10 @@ const addFile = () => {
 }
 
 const showPlaySubmit = ref(false)
-onMounted(() => showPlaySubmit.value = 'key' in useRoute().query)
+const submitKey = ref(useRoute().query.key?.toString())
+onMounted(() => {
+  showPlaySubmit.value = 'key' in useRoute().query
+})
 </script>
 
 <template>
@@ -50,7 +53,7 @@ onMounted(() => showPlaySubmit.value = 'key' in useRoute().query)
     </form>
     <div v-if="showPlaySubmit" class="sidebar-accent">
       <h2 class="sidebar-header">Submit</h2>
-      <PlaySubmit class="playSubmit"/>
+      <PlaySubmit class="playSubmit" :examKey="submitKey"/>
     </div>
   </aside>
 </template>

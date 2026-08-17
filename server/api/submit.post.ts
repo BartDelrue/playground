@@ -37,7 +37,7 @@ export default defineEventHandler({
 
         if (!url || typeof url !== 'string' || !key || typeof key !== 'string')
             throw createError({statusCode: 400, statusMessage: 'Payload not correct'})
-        if (url.length > 10000)
+        if (url.length > 50000)
             throw createError({statusCode: 413, statusMessage: 'Payload too large'})
 
         let validatedUrl;

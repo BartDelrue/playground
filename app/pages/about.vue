@@ -13,11 +13,13 @@ interface ModeInfo {
 const MODES: ModeInfo[] = [
   {
     key: 'browser', label: 'Browser', url: '',
-    blurb: 'HTML, CSS and JavaScript, bundled to blob URLs and rendered live in a sandboxed frame.'
+    blurb: 'HTML, CSS and JavaScript, bundled to blob URLs and rendered live in a sandboxed frame.',
   },
   {
-    key: 'vue', label: 'Vue', url: '',
-    blurb: 'Single-file components, compiled in the browser by the official @vue/repl.'
+    key: 'vue',
+    label: 'Vue',
+    url: 'https://vue.bartdelrue.ikdoeict.be',
+    blurb: 'Single-file components, compiled in the browser by the official @vue/repl.',
   },
   {
     key: 'node', label: 'Node', url: '',

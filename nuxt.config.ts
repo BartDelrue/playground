@@ -26,6 +26,15 @@ export default defineNuxtConfig({
     css: ['~/assets/main.css'],
     nitro: {
         output: {dir: 'dist/' + mode},
+        // The dev-only middleware below patches @vue/repl's unemittable worker URLs; this is the
+        // production half of the same fix. Without it the built app 404s on
+        // /_nuxt/assets/vue.worker-*.js, Volar never boots, and the editor loses ALL IntelliSense
+        // (completions, hover types, signature help, diagnostics) — dev looks fine, prod doesn't.
+        // Mounted rather than copied into public/ so the ~6 MB of workers stay out of the
+        // browser/node builds, and so a @vue/repl upgrade can't leave a stale hash behind.
+        publicAssets: mode === 'vue'
+            ? [{dir: resolve('./node_modules/@vue/repl/dist/assets'), baseURL: '/_nuxt/assets'}]
+            : [],
         storage: {
             data: {driver: 'fs', base: './data'},
             uploads: {driver: 'fs', base: './uploads'}

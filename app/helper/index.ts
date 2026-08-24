@@ -55,3 +55,33 @@ export async function loadHash(): Promise<Record<string, string> | null> {
     return null;
   }
 }
+
+// @vue/repl's Volar worker fetches .d.ts files for bare imports from unpkg, using
+// `store.dependencyVersion` to decide which version of each package to pull. Anything
+// missing from that map falls back to `latest`, which drifts from whatever the import
+// map actually loads at runtime — vue-router@4 in the import map but vue-router@5 types
+// in the editor. Deriving the versions from the import map keeps the two in step: add a
+// CDN dependency there and its type hints follow automatically.
+//
+// Matches the `<pkg>@<version>` segment of an esm.sh / unpkg / jsdelivr URL. Only pins a
+// package when the parsed name equals the bare specifier, so a subpath entry
+// (`vue/jsx-runtime` -> `.../@vue/runtime-dom@3...`) is skipped rather than mispinned;
+// those fall back to `latest`, which is the safer direction to be wrong in.
+const CDN_PKG_VERSION = /^\/(?:npm\/)?((?:@[^/@]+\/)?[^/@]+)@([^/]+)/;
+
+export function dependencyVersionsFromImportMap(
+  imports: Record<string, string> | undefined,
+): Record<string, string> {
+  const versions: Record<string, string> = {};
+  for (const [specifier, url] of Object.entries(imports ?? {})) {
+    let pathname: string;
+    try {
+      pathname = new URL(url).pathname;
+    } catch {
+      continue; // relative or malformed URL — no version to pin
+    }
+    const match = CDN_PKG_VERSION.exec(pathname);
+    if (match && match[1] === specifier) versions[specifier] = match[2]!;
+  }
+  return versions;
+}

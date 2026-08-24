@@ -22,7 +22,7 @@ const MODES: ModeInfo[] = [
     blurb: 'Single-file components, compiled in the browser by the official @vue/repl.',
   },
   {
-    key: 'node', label: 'Node', url: '',
+    key: 'node', label: 'Node', url: 'https://play.bartdelrue.ikdoeict.be',
     blurb: 'A Node-style server with working npm install, run entirely in the browser via almostnode.'
   },
 ]

@@ -7,6 +7,7 @@ import '@vue/repl/style.css'
 import AppHeader from "~/components/AppHeader.vue";
 import SideBar from "~/components/SideBar.vue";
 import AppDivider from "~/components/AppDivider.vue";
+import {dependencyVersionsFromImportMap} from '~/helper'
 
 defineProps<{ displayMode?: DisplayMode }>()
 
@@ -15,7 +16,23 @@ const sideBarPos = ref(200)
 const {importMap: vueImportMap, vueVersion} = useVueImportMap()
 const importMap = computed(() => mergeImportMap(vueImportMap.value, defaultImports))
 const template  = ref({ welcomeSFC: appVueDefault })
-const store = useStore({importMap, vueVersion, template}, location.hash.slice(1) || undefined)
+
+// Tells Volar which version of each import-map dependency to fetch types for, so
+// vue-router/pinia resolve to real types instead of `any`. Seeded before useStore
+// because the Monaco editor reads it the first time it boots the language service.
+const dependencyVersion = ref(dependencyVersionsFromImportMap(importMap.value.imports))
+
+const store = useStore({importMap, vueVersion, template, dependencyVersion}, location.hash.slice(1) || undefined)
+
+// A shared hash can carry its own import map, so keep type acquisition in step with the
+// live one rather than only the defaults. reloadLanguageTools is installed by the Monaco
+// editor (and debounced there), hence the optional call — it is absent until it mounts.
+watchEffect(() => {
+  const next = dependencyVersionsFromImportMap(store.getImportMap().imports)
+  if (JSON.stringify(next) === JSON.stringify(dependencyVersion.value)) return
+  dependencyVersion.value = next
+  store.reloadLanguageTools?.()
+})
 
 // Defer capturing the default so the store's import map has time to settle.
 // Gate the watchEffect on a reactive flag so we never write a hash before

@@ -78,6 +78,15 @@ http.createServer = function(optsOrHandler, maybeHandler) {
   }
 
   function wrappedHandler(req, res) {
+    // almostnode's IncomingMessage shim stores the raw request body on req._body —
+    // the exact property Express's body-parser uses as its "already parsed" flag.
+    // Left set, express.json()/urlencoded() early-return (if (req._body) next())
+    // without parsing, so req.body is undefined. The body bytes are already buffered
+    // in the shim's Readable and its on('data') re-flows them, so clearing the flag
+    // lets express.json() read and parse the stream itself — a student who omits
+    // express.json() still correctly gets req.body === undefined. We also restore
+    // Content-Length (a forbidden header the service worker can't forward) for
+    // body-parser's hasBody() gate.
     const urlPath = req.url === '/' ? '/index.html' : (req.url || '/').split('?')[0]
     const full = '/client' + urlPath
     // Try static file first via read; avoids existsSync quirks on nested VFS paths.
@@ -105,10 +114,59 @@ http.createServer = function(optsOrHandler, maybeHandler) {
     : origCreateServer(wrappedHandler)
 }
 
-import('${importPath}').catch(err => {
-  process.stderr.write('Server startup error: ' + err.message + '\\n')
-  process.exit(1)
-})
+;(async () => {
+  // Body-parser workaround. almostnode bundles body-parser 2.x, whose raw-body reader
+  // treats this runtime's custom request stream as already-finished and so reads zero
+  // bytes — express.json()/urlencoded() therefore parse an empty body and req.body
+  // comes back as {}. The raw bytes ARE available on req._body (the shim buffers them).
+  // So we wrap the parsers: run the real middleware, and if it came up empty while the
+  // shim holds bytes of the matching type, parse those bytes ourselves. This stays
+  // gated on the student actually registering the parser — omit express.json() and
+  // req.body is still undefined — so the teaching signal is preserved.
+  const patchParser = (mw, kind) => function (req, res, next) {
+    const raw = req._body
+    const ct = String(req.headers['content-type'] || '')
+    const matches = kind === 'json'
+      ? /application\\/([\\w.+-]+\\+)?json/i.test(ct)
+      : /application\\/x-www-form-urlencoded/i.test(ct)
+    return mw(req, res, function (err) {
+      if (err) return next(err)
+      const b = req.body
+      const empty = b == null || (typeof b === 'object' && !Array.isArray(b) && Object.keys(b).length === 0)
+      if (raw != null && raw.length > 0 && matches && empty) {
+        const text = raw.toString('utf8')
+        try {
+          req.body = kind === 'json'
+            ? JSON.parse(text)
+            : Object.fromEntries(new URLSearchParams(text))
+        } catch (e) {
+          const perr = new Error('Failed to parse ' + kind + ' body')
+          perr.status = perr.statusCode = 400
+          perr.type = 'entity.parse.failed'
+          return next(perr)
+        }
+      }
+      return next()
+    })
+  }
+  try {
+    const em = await import('express')
+    const ex = em.default || em
+    for (const kind of ['json', 'urlencoded']) {
+      if (ex && typeof ex[kind] === 'function') {
+        const orig = ex[kind].bind(ex)
+        ex[kind] = function () { return patchParser(orig.apply(null, arguments), kind) }
+      }
+    }
+  } catch { /* express not installed — nothing to patch */ }
+
+  try {
+    await import('${importPath}')
+  } catch (err) {
+    process.stderr.write('Server startup error: ' + err.message + '\\n')
+    process.exit(1)
+  }
+})()
 `
 }
 

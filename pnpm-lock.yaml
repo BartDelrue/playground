@@ -4,6 +4,9 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  '@vue/repl@4.7.2': 7f1bb174b7b30d5ccc75edb9fde585942b2773db7fca85d3a22e90b686c74c32
+
 importers:
 
   .:
@@ -22,7 +25,7 @@ importers:
         version: 3.5.35
       '@vue/repl':
         specifier: ^4.7.2
-        version: 4.7.2
+        version: 4.7.2(patch_hash=7f1bb174b7b30d5ccc75edb9fde585942b2773db7fca85d3a22e90b686c74c32)
       almostnode:
         specifier: ^0.2.14
         version: 0.2.14(react@19.2.7)(rollup@4.61.1)(vite@7.3.5(@types/node@25.9.1)(jiti@2.7.0)(terser@5.48.0)(yaml@2.9.0))
@@ -7074,7 +7077,7 @@ snapshots:
     dependencies:
       '@vue/shared': 3.5.35
 
-  '@vue/repl@4.7.2': {}
+  '@vue/repl@4.7.2(patch_hash=7f1bb174b7b30d5ccc75edb9fde585942b2773db7fca85d3a22e90b686c74c32)': {}
 
   '@vue/runtime-core@3.5.35':
     dependencies:

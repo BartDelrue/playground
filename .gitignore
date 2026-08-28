@@ -26,7 +26,7 @@ logs
 # Test coverage
 coverage/
 
-# Generated on install by copy-almostnode-worker.mjs
-public/assets/runtime-worker-*.js
+# Generated on install by copy-almostnode-worker.mjs (node mode only; mounted by nuxt.config.ts)
+public.node/
 
 .claude

@@ -5,3 +5,5 @@ allowBuilds:
   esbuild: true
   node-liblzma: true
   unrs-resolver: true
+patchedDependencies:
+  '@vue/repl@4.7.2': patches/@vue__repl@4.7.2.patch

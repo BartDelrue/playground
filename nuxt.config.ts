@@ -26,20 +26,43 @@ export default defineNuxtConfig({
     css: ['~/assets/main.css'],
     nitro: {
         output: {dir: 'dist/' + mode},
-        // The dev-only middleware below patches @vue/repl's unemittable worker URLs; this is the
-        // production half of the same fix. Without it the built app 404s on
-        // /_nuxt/assets/vue.worker-*.js, Volar never boots, and the editor loses ALL IntelliSense
-        // (completions, hover types, signature help, diagnostics) — dev looks fine, prod doesn't.
-        // Mounted rather than copied into public/ so the ~6 MB of workers stay out of the
-        // browser/node builds, and so a @vue/repl upgrade can't leave a stale hash behind.
-        publicAssets: mode === 'vue'
-            ? [{dir: resolve('./node_modules/@vue/repl/dist/assets'), baseURL: '/_nuxt/assets'}]
-            : [],
+        // Both entries below are mode-gated on purpose: public/ ships in every build, so anything
+        // put there is dead weight in the two modes that never load it.
+        publicAssets: [
+            // vue: the dev-only middleware below patches @vue/repl's unemittable worker URLs; this
+            // is the production half of the same fix. Without it the built app 404s on
+            // /_nuxt/assets/vue.worker-*.js, Volar never boots, and the editor loses ALL
+            // IntelliSense (completions, hover types, signature help, diagnostics) — dev looks
+            // fine, prod doesn't. Mounted straight from the package so a @vue/repl upgrade can't
+            // leave a stale content hash behind. ~6 MB.
+            ...(mode === 'vue'
+                ? [{dir: resolve('./node_modules/@vue/repl/dist/assets'), baseURL: '/_nuxt/assets'}]
+                : []),
+
+            // node: almostnode's runtime worker and service worker, which it loads from hardcoded
+            // web-root URLs (/assets/runtime-worker-<hash>.js and /__sw__.js) — hence baseURL '/'.
+            // Populated by copy-almostnode-worker.mjs on postinstall; see the note there for why
+            // they're copied into public.node/ rather than mounted from node_modules. ~3.6 MB.
+            ...(mode === 'node'
+                ? [{dir: resolve('./public.node'), baseURL: '/'}]
+                : []),
+        ],
         storage: {
             data: {driver: 'fs', base: './data'},
             uploads: {driver: 'fs', base: './uploads'}
         }
     },
+
+    // Third @vue/repl workaround, this one a package patch rather than config —
+    // patches/@vue__repl@4.7.2.patch, applied via pnpm `patchedDependencies`.
+    // Its worker's completion proxy compared a GENERATED offset against the SFC's SOURCE
+    // <template>/<style> ranges, so a caret in <script setup> was frequently mistaken for one
+    // inside a block and had the macros (defineProps/defineEmits/…) plus JS globals stripped
+    // from its completions. Whether it misfired depended on where the generated offset happened
+    // to land, which is why it looked arbitrary — any SFC with a <style> block was a likely
+    // victim. The patch drops that positional filter; the only cost is cosmetic suggestion noise
+    // inside templates. Upstream as of @vue/repl 4.7.2 (play.vuejs.org ships the same worker and
+    // is affected too) — the patch is version-pinned, so an upgrade fails loudly. Recheck then.
 
     // @vue/repl ships its workers as `"" + new URL("assets/…", import.meta.url).href`. The
     // leading `"" +` stops Vite from recognising them as worker assets, so they're never emitted

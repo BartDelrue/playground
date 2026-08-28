@@ -14,15 +14,28 @@ defineProps<{ displayMode?: DisplayMode }>()
 const sideBarPos = ref(200)
 
 const {importMap: vueImportMap, vueVersion} = useVueImportMap()
-const importMap = computed(() => mergeImportMap(vueImportMap.value, defaultImports))
+const builtinImportMap = computed(() => mergeImportMap(vueImportMap.value, defaultImports))
 const template  = ref({ welcomeSFC: appVueDefault })
 
 // Tells Volar which version of each import-map dependency to fetch types for, so
 // vue-router/pinia resolve to real types instead of `any`. Seeded before useStore
 // because the Monaco editor reads it the first time it boots the language service.
-const dependencyVersion = ref(dependencyVersionsFromImportMap(importMap.value.imports))
+const dependencyVersion = ref(dependencyVersionsFromImportMap(builtinImportMap.value.imports))
 
-const store = useStore({importMap, vueVersion, template, dependencyVersion}, location.hash.slice(1) || undefined)
+// The worker loads TypeScript itself from a CDN at `store.typescriptVersion`, which
+// defaults to the floating `latest`. Pin it: TS 7 dropped the `lib/typescript.js` the
+// worker imports (that path 404s on 7.x), so the day a CDN resolves `latest` to 7 the
+// language service stops booting altogether and ALL IntelliSense goes with it. 6.0.3 is
+// what play.vuejs.org pins and what `latest` happens to resolve to today.
+const typescriptVersion = ref('6.0.3')
+
+// `builtinImportMap` is the real option name — useStore ignores an `importMap` key and
+// silently falls back to its own useVueImportMap(), which drops vue-router/pinia from the
+// sandbox's import map and replaces the vueVersion ref we passed in.
+const store = useStore(
+    {builtinImportMap, vueVersion, template, dependencyVersion, typescriptVersion},
+    location.hash.slice(1) || undefined,
+)
 
 // A shared hash can carry its own import map, so keep type acquisition in step with the
 // live one rather than only the defaults. reloadLanguageTools is installed by the Monaco

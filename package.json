@@ -3,7 +3,7 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "build": "pnpm run build:browser & pnpm run build:vue & pnpm run build:node",
+    "build": "pnpm run build:browser && pnpm run build:vue && pnpm run build:node",
     "build:browser": "nuxt build --dotenv .env.browser",
     "build:vue": "nuxt build --dotenv .env.vue",
     "build:node": "nuxt build --dotenv .env.node",

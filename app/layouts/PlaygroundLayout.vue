@@ -120,7 +120,7 @@ watch(isBooting, v => {
     </template>
     <template v-else>
 
-      <AppHeader :title="appTitle" :active-file="activeFile" v>
+      <AppHeader :title="appTitle" :active-file="activeFile">
         <button class="restart-btn" :disabled="isBooting" @click="restart">
           {{ isBooting ? '…' : '↺ Restart' }}
         </button>

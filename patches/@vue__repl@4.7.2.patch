@@ -1,0 +1,33 @@
+diff --git a/dist/assets/vue.worker-NGt3bbUb.js b/dist/assets/vue.worker-NGt3bbUb.js
+index a6126f73d184e7909d3170cc2c7c34ca22698f48..c34e6e54d70b36a47f7fcd1be6da177a99778214 100644
+--- a/dist/assets/vue.worker-NGt3bbUb.js
++++ b/dist/assets/vue.worker-NGt3bbUb.js
+@@ -149352,23 +149352,11 @@ var require_common = /* @__PURE__ */ __commonJSMin(((exports) => {
+ 			const result = getCompletionsAtPosition(fileName, position, options, formattingSettings);
+ 			if (result) {
+ 				result.entries = result.entries.filter((entry) => !entry.name.includes("__VLS_") && !entry.labelDetails?.description?.includes("__VLS_"));
+-				const root = language.scripts.get(asScriptId(fileName))?.generated?.root;
+-				if (root instanceof language_core_1.VueVirtualCode) {
+-					if ([root.sfc.template, ...root.sfc.styles].filter(Boolean).map((block) => [block.startTagEnd, block.endTagStart]).some(([start, end]) => position >= start && position <= end)) {
+-						const globalKinds = new Set([
+-							"var",
+-							"function",
+-							"module"
+-						]);
+-						const globalsOrKeywords = ts.Completions.SortText.GlobalsOrKeywords;
+-						const sortTexts = new Set([
+-							globalsOrKeywords,
+-							"z" + globalsOrKeywords,
+-							globalsOrKeywords + "1"
+-						]);
+-						result.entries = result.entries.filter((entry) => !(entry.kind === "const" && entry.name in vueOptions.macros) && (!globalKinds.has(entry.kind) || !sortTexts.has(entry.sortText) || (0, shared_1.isGloballyAllowed)(entry.name)));
+-					}
+-				}
++				// PATCHED (jsplayground): upstream compared a GENERATED offset against the SFC's
++				// SOURCE <template>/<style> ranges, so a caret in <script setup> was often
++				// judged to be inside a block and had defineProps/defineEmits/etc. (and JS
++				// globals) stripped from its completions. Dropping the positional filter costs
++				// only cosmetic noise inside templates; see nuxt.config.ts for the full note.
+ 				for (const item of result.entries) if (item.source) {
+ 					const originalName = item.name;
+ 					for (const vueExt of vueOptions.extensions) {

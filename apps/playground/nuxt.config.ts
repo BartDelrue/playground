@@ -19,6 +19,13 @@ export default defineNuxtConfig({
         },
     },
 
+    // Off in production. This build pulls in Monaco, @vue/repl (which carries its own
+    // Monaco and Volar) and almostnode all at once - the cost of one build serving three
+    // modes - and holding sourcemaps for that graph in memory is what pushed `nuxt
+    // generate` past a 2 GB heap on the build server. Nobody debugs minified production
+    // output here anyway.
+    sourcemap: {client: false, server: false},
+
     modules: ['@nuxt/eslint', '@nuxt/icon', '@nuxt/test-utils'],
     css: ['~/assets/main.css'],
 

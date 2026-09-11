@@ -37,6 +37,17 @@ ENV NUXT_PUBLIC_API_ORIGIN=$NUXT_PUBLIC_API_ORIGIN
 RUN test -n "$NUXT_PUBLIC_PREVIEW_ORIGIN" || (echo "NUXT_PUBLIC_PREVIEW_ORIGIN is not set as a BUILD variable" && exit 1) \
  && test -n "$NUXT_PUBLIC_API_ORIGIN"     || (echo "NUXT_PUBLIC_API_ORIGIN is not set as a BUILD variable" && exit 1)
 
+# Node's default heap is about 2 GB, and this build does not fit in it: measured, it dies
+# at ~2048 MB and completes at 3072 MB. That is the price of one build serving three modes
+# - Monaco, @vue/repl (which carries its own Monaco and Volar) and almostnode are all in
+# the same module graph, where the old three-build setup split them up.
+#
+# 4096 for headroom. The BUILD MACHINE therefore needs ~4 GB of RAM or swap available. If
+# this step dies with exit code 137 or a bare "Killed" instead of a JavaScript heap
+# message, that is the kernel's OOM killer rather than Node's own limit, and raising this
+# number will not help - the server needs more memory.
+ENV NODE_OPTIONS=--max-old-space-size=4096
+
 # copy-almostnode-assets lifts almostnode's service worker and runtime worker out of
 # node_modules into public/. Node mode is broken without them, and --ignore-scripts above
 # means postinstall did not run, so this is that step done explicitly.

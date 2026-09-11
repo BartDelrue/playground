@@ -34,3 +34,6 @@ logs
 
 coverage/
 .eslintcache
+
+# Local Claude Code settings: machine-specific tool permissions, not project config.
+.claude/

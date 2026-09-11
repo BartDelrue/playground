@@ -1,0 +1,30 @@
+# Keeps the build context small, but the first two entries are about safety, not speed.
+
+# Exam data: real student names and keys. `COPY . .` would otherwise bake these into an
+# image that gets pushed to a registry and kept around.
+**/.data/
+apps/admin/data/
+apps/admin/uploads/
+apps/admin/uploads.imported/
+
+# Local secrets. Everything the containers need is set in Coolify instead.
+**/.env
+**/.env.*
+!**/.env.example
+
+# Rebuilt inside the image; copying host output in would ship whatever happened to be
+# lying around, including a build made with the wrong origins baked in.
+**/node_modules/
+**/.nuxt/
+**/.output/
+**/dist/
+apps/playground/public/assets/
+apps/playground/public/__sw__.js
+
+.git/
+.idea/
+.vscode/
+.claude/
+**/coverage/
+**/.eslintcache
+*.log

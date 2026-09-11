@@ -1,44 +1,37 @@
 {
-  "name": "nuxt-app",
-  "type": "module",
+  "name": "playground-workspace",
   "private": true,
-  "scripts": {
-    "build": "pnpm run build:browser && pnpm run build:vue && pnpm run build:node",
-    "build:browser": "nuxt build --dotenv .env.browser",
-    "build:vue": "nuxt build --dotenv .env.vue",
-    "build:node": "nuxt build --dotenv .env.node",
-    "dev": "nuxt dev --dotenv .env.node",
-    "dev:browser": "nuxt dev --dotenv .env.browser",
-    "dev:vue": "nuxt dev --dotenv .env.vue",
-    "dev:node": "nuxt dev --dotenv .env.node",
-    "generate": "nuxt generate",
-    "preview": "nuxt preview",
-    "postinstall": "node copy-almostnode-worker.mjs && nuxt prepare",
-    "test": "vitest",
-    "test:watch": "vitest --watch",
-    "test:coverage": "vitest --coverage",
-    "test:unit": "vitest --project unit",
-    "test:nuxt": "vitest --project nuxt",
-    "lint:eslint": "eslint . --fix --cache"
+  "type": "module",
+  "packageManager": "pnpm@11.21.0",
+  "engines": {
+    "node": ">=22"
   },
-  "dependencies": {
-    "@nuxt/eslint": "1.15.2",
-    "@nuxt/icon": "2.2.3",
-    "@nuxt/test-utils": "4.0.3",
-    "@vue/compiler-sfc": "^3.5.35",
-    "@vue/repl": "^4.7.2",
-    "almostnode": "^0.2.14",
-    "eslint": "^9.0.0 || ^10.0.0",
-    "monaco-editor": "^0.55.1",
-    "nuxt": "^4.4.7",
-    "vue": "^3.5.35",
-    "vue-router": "^5.1.0"
+  "scripts": {
+    "postinstall": "node tools/copy-almostnode-assets.mjs && pnpm build:preview && pnpm --filter @playground/app exec nuxt prepare && pnpm --filter @playground/admin exec nuxt prepare",
+    "dev": "concurrently -k -n play,admin,shim,serve -c magenta,blue,yellow,gray \"pnpm dev:play\" \"pnpm dev:admin\" \"pnpm dev:shim\" \"pnpm dev:serve\"",
+    "dev:play": "pnpm --filter @playground/app dev --port 3000",
+    "dev:admin": "pnpm --filter @playground/admin dev --port 3001",
+    "dev:shim": "pnpm --filter @playground/preview dev",
+    "dev:serve": "node tools/static.mjs apps/preview/dist 3002",
+    "build": "pnpm build:preview && pnpm build:play && pnpm build:admin",
+    "build:preview": "pnpm --filter @playground/preview build",
+    "build:play": "pnpm --filter @playground/app generate",
+    "build:admin": "pnpm --filter @playground/admin build",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "pnpm --filter @playground/app exec nuxt typecheck && pnpm --filter @playground/admin exec nuxt typecheck",
+    "lint": "pnpm --filter @playground/app exec eslint . --fix --cache && pnpm --filter @playground/admin exec eslint . --fix --cache"
   },
   "devDependencies": {
     "@vitest/coverage-v8": "^4.1.8",
     "@vue/test-utils": "^2.4.11",
+    "concurrently": "^9.2.1",
+    "esbuild": "^0.27.2",
+    "eslint": "^9.0.0 || ^10.0.0",
     "happy-dom": "^20.10.1",
-    "typescript": "6.0.3",
-    "vitest": "^4.1.8"
+    "typescript": "~5.9.3",
+    "vitest": "^4.1.8",
+    "vue-tsc": "^3.1.1"
   }
 }

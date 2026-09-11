@@ -1,0 +1,10 @@
+{
+  "name": "@playground/shared",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "//": "Published as raw TypeScript on purpose - there is no build step. Both apps list this as a workspace dependency AND add it to nuxt.config's build.transpile, which is what lets Nitro consume the .ts sources server-side."
+}

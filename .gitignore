@@ -1,19 +1,28 @@
-# Nuxt dev/build outputs
+# Nuxt / Nitro build output
 .output
-.data
 .nuxt
 .nitro
+.data
 .cache
 dist
 
-# Node dependencies
 node_modules
 
-# Logs
+# Generated: the preview shim bundle (built from apps/preview/src by esbuild)
+apps/preview/dist/
+
+# Generated on install by tools/copy-almostnode-assets.mjs
+apps/playground/public/assets/runtime-worker-*.js
+apps/playground/public/__sw__.js
+
+# Exam data. Real student names and keys - must never be committed.
+apps/admin/data/
+apps/admin/uploads/
+apps/admin/uploads.imported/
+apps/admin/.data/
+
 logs
 *.log
-
-# Misc
 .DS_Store
 .fleet
 .idea
@@ -23,12 +32,5 @@ logs
 .env.*
 !.env.example
 
-# Test coverage
 coverage/
-
-# Generated on install by copy-almostnode-worker.mjs (node mode only; mounted by nuxt.config.ts)
-public.node/
-
-.claude
-
-uploads/
+.eslintcache

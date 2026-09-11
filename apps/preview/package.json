@@ -1,0 +1,16 @@
+{
+  "name": "@playground/preview",
+  "private": true,
+  "type": "module",
+  "//": "A workspace package purely so @playground/shared resolves. The deployed artifact is dist/ - index.html plus the bundled main.js, nothing else. No framework here, and nothing but the shim may ever live on that origin.",
+  "scripts": {
+    "build": "esbuild src/main.ts src/index.html --bundle --format=esm --target=es2022 --outdir=dist --loader:.html=copy",
+    "dev": "esbuild src/main.ts src/index.html --bundle --format=esm --target=es2022 --outdir=dist --loader:.html=copy --watch"
+  },
+  "dependencies": {
+    "@playground/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "esbuild": "^0.27.2"
+  }
+}

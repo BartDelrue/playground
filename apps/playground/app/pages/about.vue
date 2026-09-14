@@ -18,11 +18,13 @@ const MODES: ModeInfo[] = [
   {
     key: 'vue',
     label: 'Vue',
-    url: 'https://vue.bartdelrue.ikdoeict.be',
+    url: `${location.origin}/vue`,
     blurb: 'Single-file components, compiled in the browser by the official @vue/repl.',
   },
   {
-    key: 'node', label: 'Node', url: 'https://play.bartdelrue.ikdoeict.be',
+    key: 'node',
+    label: 'Node',
+    url: `${location.origin}/node`,
     blurb: 'A Node-style server with working npm install, run entirely in the browser via almostnode.'
   },
 ]

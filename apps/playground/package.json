@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@nuxt/eslint": "1.15.2",
+    "@nuxt/fonts": "^0.14.0",
     "@nuxt/icon": "2.2.3",
     "@nuxt/test-utils": "4.0.3",
     "@playground/shared": "workspace:*",

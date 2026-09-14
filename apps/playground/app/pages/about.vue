@@ -78,9 +78,13 @@ const DISPLAY_MODES = [
   {
     q: 'minimal',
     name: 'Minimal',
-    desc: 'Editor and preview side by side, with every bit of chrome stripped away. Ideal for embedding.'
+    desc: 'Editor and preview side by side, with every bit of chrome stripped away. Ideal for embedding.',
+    iframe: `${useRequestURL().origin}?displaymode=minimal`
   },
-  {q: 'vertical', name: 'Vertical', desc: 'Editor stacked above the preview, splitting top to bottom.'},
+  {
+    q: 'vertical', name: 'Vertical', desc: 'Editor stacked above the preview, splitting top to bottom.',
+    iframe: `${useRequestURL().origin}?displaymode=vertical&file=styles.css`
+  },
 ]
 
 const current = MODES.find(m => m.key === mode) ?? MODES[0]!
@@ -88,14 +92,6 @@ const detail = DETAIL[mode] ?? DETAIL.browser
 
 useHead({
   title: `About · ${current.label} Playground`,
-  link: [
-    {rel: 'preconnect', href: 'https://fonts.googleapis.com'},
-    {rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: ''},
-    {
-      rel: 'stylesheet',
-      href: 'https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@300;400;600;700&family=Rubik+Mono+One&display=swap'
-    },
-  ],
 })
 </script>
 
@@ -133,25 +129,28 @@ useHead({
     <main>
 
       <section class="wrap section">
-          <h2 class="section-title">
-            {{ current.label }} <em>Playground</em>
-          </h2>
+        <h2 class="section-title">
+          {{ current.label }} <em>Playground</em>
+        </h2>
 
-          <p class="lead">You are currently visiting <em>{{ current.label }} Playground</em>. {{ detail.tagline }}</p>
+        <p class="lead">You are currently visiting <em>{{ current.label }} Playground</em>. {{ detail.tagline }}</p>
 
-          <ul class="points">
-            <li v-for="p in detail.points" :key="p" class="muted">{{ p }}</li>
-          </ul>
+        <ul class="points">
+          <li v-for="p in detail.points" :key="p" class="muted">{{ p }}</li>
+        </ul>
 
-          <h3>How it works</h3>
-          <p class="lead">{{ detail.how }}</p>
+        <h3>How it works</h3>
+        <p class="lead">{{ detail.how }}</p>
       </section>
 
       <section class="wrap section">
         <h2 class="section-title">Display modes</h2>
         <p class="lead">
           Add a <code>displaymode</code> query parameter to reshape the workspace — handy for embedding
-          a stripped-down view in a slide, an LMS or an iframe.
+          a stripped-down view in a slide, an LMS or an iframe. Pair it with
+          <code>?file=</code> to decide which file opens:
+          <code>?displaymode=minimal&amp;file=server/server.js</code>. The file is chosen once,
+          when the playground loads — switching files afterwards leaves the link alone.
         </p>
 
         <dl class="display-modes">
@@ -159,7 +158,14 @@ useHead({
             <dt>
               <code>?displaymode={{ dm.q }}</code>
             </dt>
-            <dd class="muted">{{ dm.desc }}</dd>
+            <dd class="muted">
+              <div>
+                {{ dm.desc }}
+              </div>
+              <iframe
+                  v-if="dm.iframe" :src="dm.iframe" frameborder="0"
+                  style="width: 100%; min-height: 40rem; margin-block-start:1rem;"/>
+            </dd>
           </div>
         </dl>
       </section>
@@ -190,8 +196,9 @@ useHead({
       </section>
     </main>
     <footer class="wrap project">
-      <p class="colophon caps muted">Built and maintained by <a href="https://bartdelrue.github.io">Bart Delrue</a> for <a
-          href="https://odisee.be/ELOICT">Odisee - ELOICT</a>.</p>
+      <p class="colophon caps muted">Built and maintained by <a href="https://bartdelrue.github.io">Bart Delrue</a> for
+        <a
+            href="https://odisee.be/ELOICT">Odisee - ELOICT</a>.</p>
     </footer>
   </div>
 
@@ -214,6 +221,7 @@ useHead({
   block-size: 100dvb;
   overflow-y: auto;
   color: var(--fg);
+  font-family: var(--font-body);
   font-size: 1.2rem;
   line-height: 1.65;
   padding-block-start: 8rem;
@@ -268,6 +276,7 @@ code {
 
 .title {
   margin-block-start: 0.4rem;
+  font-family: var(--font-display);
   font-size: clamp(2.75rem, 9cqi, 5rem);
   font-weight: 300;
   line-height: 0.98;
@@ -415,10 +424,6 @@ code {
   gap: 0.35rem 1.5rem;
   padding-block: 1.1rem;
   border-block-start: 1px solid var(--line);
-
-  &:last-child {
-    border-block-end: 1px solid var(--line);
-  }
 
   @container (min-width: 34rem) {
     grid-template-columns: 16rem 1fr;

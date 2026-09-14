@@ -1,6 +1,8 @@
 /* ── Design tokens ───────────────────────────────────────────────────────── */
 :root {
   --font-mono: 'Consolas', 'Courier New', monospace;
+  --font-body: 'Josefin Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Rubik Mono One', ui-monospace, monospace;
 
   /* Catppuccin Mocha palette in oklch */
   --crust:   oklch(16% 0.02 264);

@@ -26,7 +26,7 @@ export default defineNuxtConfig({
     // output here anyway.
     sourcemap: {client: false, server: false},
 
-    modules: ['@nuxt/eslint', '@nuxt/icon', '@nuxt/test-utils'],
+    modules: ['@nuxt/eslint', '@nuxt/fonts', '@nuxt/icon', '@nuxt/test-utils'],
     css: ['~/assets/main.css'],
 
     // @playground/shared ships as raw TypeScript with no build step, so it has to be

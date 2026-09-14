@@ -4,7 +4,6 @@ import type {PlaygroundMode} from '@playground/shared'
 
 const props = defineProps<{ mode: PlaygroundMode }>()
 
-// One build serves all three modes now, so identity is set per route instead of per build.
 const META: Record<PlaygroundMode, { title: string; favicon: string }> = {
   browser: {title: 'Browser Playground', favicon: '/favicon-browser.svg'},
   vue: {title: 'Vue Playground', favicon: '/favicon-vue.svg'},

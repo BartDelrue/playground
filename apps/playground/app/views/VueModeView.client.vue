@@ -42,6 +42,12 @@ const store = useStore(
     location.hash.slice(1) || undefined,
 )
 
+// ?file= selects the open file, matching browser and node mode (see composables/files.ts).
+// Startup only: nothing writes it back, so switching files in the editor does not touch
+// the URL. An unknown name is ignored rather than clearing the selection.
+const queryFile = useRoute().query.file?.toString()
+if (queryFile && queryFile in store.files) store.setActive(queryFile)
+
 // A shared hash can carry its own import map, so keep type acquisition in step with the
 // live one rather than only the defaults. reloadLanguageTools is installed by the Monaco
 // editor (and debounced there), hence the optional call — it is absent until it mounts.
@@ -67,7 +73,7 @@ watchEffect(() => {
   if (!ready.value) return
   const current = store.serialize()
   history.replaceState(null, '', defaultSerial !== null && current === defaultSerial
-    ? location.pathname
+    ? location.pathname + location.search
     : current)
 })
 

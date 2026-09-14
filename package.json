@@ -21,7 +21,8 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "typecheck": "pnpm --filter @playground/app exec nuxt typecheck && pnpm --filter @playground/admin exec nuxt typecheck",
-    "lint": "pnpm --filter @playground/app exec eslint . --fix --cache && pnpm --filter @playground/admin exec eslint . --fix --cache"
+    "lint": "pnpm --filter @playground/app exec eslint . --fix --cache && pnpm --filter @playground/admin exec eslint . --fix --cache",
+    "lint:ci": "pnpm --filter @playground/app exec eslint . && pnpm --filter @playground/admin exec eslint ."
   },
   "devDependencies": {
     "@vitest/coverage-v8": "^4.1.8",

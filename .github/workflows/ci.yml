@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: [main, 'feature/**']
+  pull_request:
+  workflow_dispatch:
+
+# A new push supersedes the one still running on the same branch.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Reads the version from package.json's `packageManager` field, so it cannot drift
+      # from what the lockfile was written with.
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      # postinstall does the work the later steps depend on: copies almostnode's workers,
+      # builds the preview shim, and runs `nuxt prepare` for both apps to generate the
+      # types that typecheck needs.
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm lint:ci
+
+      # `!cancelled()` rather than fail-fast: one red step should not hide the other three.
+      - if: ${{ !cancelled() }}
+        run: pnpm typecheck
+
+      - if: ${{ !cancelled() }}
+        run: pnpm test
+
+      - if: ${{ !cancelled() }}
+        run: pnpm build
+        env:
+          # The playground build does not fit in Node's default heap - it dies around
+          # 2 GB and needs ~3 GB. Same value as apps/playground/Dockerfile.
+          NODE_OPTIONS: --max-old-space-size=4096
+          # Baked in at build time. Any valid origin proves it compiles; these match
+          # production so the build is the same shape CI as on the server.
+          NUXT_PUBLIC_PREVIEW_ORIGIN: https://preview.ctrlaltdelrue.be
+          NUXT_PUBLIC_API_ORIGIN: https://admin.ctrlaltdelrue.be

@@ -29,46 +29,6 @@ const MODES: ModeInfo[] = [
   },
 ]
 
-interface ModeDetail {
-  tagline: string;
-  points: string[];
-  how: string;
-}
-
-const DETAIL: Record<Mode, ModeDetail> = {
-  browser: {
-    tagline: 'Front-end code, running the instant you type it.',
-    points: [
-      'Markup and modules are bundled into blob URLs and rendered in a sandboxed iframe on every keystroke.',
-      'Files ending in .ts and .tsx are transpiled on the fly — no build step to configure.',
-      "Bare imports such as import x from 'lib' resolve straight to esm.sh, with nothing to install.",
-      'Logs, thrown errors and unhandled rejections all stream into the console pane.',
-    ],
-    how: 'There is no server. Each file becomes an ES-module blob URL inside the page and is loaded directly by the preview frame, so what you see is genuine browser execution.',
-
-  },
-  vue: {
-    tagline: 'Single-file components, rendered live.',
-    points: [
-      'Full <script setup>, <template> and <style> compilation through @vue/compiler-sfc.',
-      'Components mount in an isolated frame and hot-update as you type, with no reload.',
-      'Genuine Vue reactivity — refs, computeds and watchers behave exactly as in production.',
-      'Pull any npm package straight from the CDN and use it inside your components.',
-    ],
-    how: '@vue/repl compiles your single-file components in the browser and mounts them into a sandboxed preview frame, recompiling on every edit.',
-  },
-  node: {
-    tagline: 'A real server, without leaving the tab.',
-    points: [
-      'almostnode runs your server in a Web Worker backed by a virtual filesystem. No container, no VM.',
-      'Declare dependencies in package.json and they are fetched and installed in-browser before boot.',
-      'Your http.createServer app is served through a service worker at a live, navigable preview URL.',
-      'Edit a server file and the process restarts; edit a client file and the preview frame remounts.',
-    ],
-    how: 'almostnode boots a virtual Node environment and a service worker that routes requests to your in-browser server. Client modules are served as blob URLs so the browser can resolve their imports.',
-  },
-}
-
 const DISPLAY_MODES = [
   {
     q: 'full',
@@ -87,11 +47,8 @@ const DISPLAY_MODES = [
   },
 ]
 
-const current = MODES.find(m => m.key === mode) ?? MODES[0]!
-const detail = DETAIL[mode] ?? DETAIL.browser
-
 useHead({
-  title: `About · ${current.label} Playground`,
+  title: `About · Playground`,
 })
 </script>
 
@@ -115,34 +72,15 @@ useHead({
           <div class="mode-text">
             <h3 class="mode-name">
               {{ m.label }}
-              <span v-if="m.key === mode" class="badge caps">you’re here</span>
             </h3>
             <p class="mode-blurb muted">{{ m.blurb }}</p>
           </div>
-          <a v-if="m.key !== mode && m.url" :href="m.url" class="mode-link caps">visit →</a>
-          <span v-else-if="m.key !== mode" class="mode-link soon caps">link coming soon</span>
-          <NuxtLink v-else :to="{name: 'index'}" class="home">Take me there!</NuxtLink>
+          <a :href="m.url" class="mode-link caps">visit →</a>
         </li>
       </ul>
     </header>
 
     <main>
-
-      <section class="wrap section">
-        <h2 class="section-title">
-          {{ current.label }} <em>Playground</em>
-        </h2>
-
-        <p class="lead">You are currently visiting <em>{{ current.label }} Playground</em>. {{ detail.tagline }}</p>
-
-        <ul class="points">
-          <li v-for="p in detail.points" :key="p" class="muted">{{ p }}</li>
-        </ul>
-
-        <h3>How it works</h3>
-        <p class="lead">{{ detail.how }}</p>
-      </section>
-
       <section class="wrap section">
         <h2 class="section-title">Display modes</h2>
         <p class="lead">
@@ -329,6 +267,10 @@ code {
   gap: 2rem;
   margin-block: 8rem 4rem;
   list-style: none;
+
+  @media (min-width: 60rem) {
+    flex-wrap: nowrap;
+  }
 }
 
 .mode-card {
@@ -340,12 +282,7 @@ code {
   border: 1px solid var(--line);
   background-color: var(--surface);
   transition: border-color 0.25s ease, background-color 0.25s ease;
-  max-inline-size: 40ch;
-
-  &.here {
-    background-color: var(--surface-2);
-    border-color: color-mix(in oklab, var(--mint) 55%, transparent);
-  }
+  flex: 1 1 40ch;
 }
 
 .mode-text {
@@ -378,41 +315,6 @@ code {
   flex-shrink: 0;
   text-decoration: none;
   color: var(--mint);
-
-  &.soon {
-    color: var(--muted);
-    opacity: 0.7;
-  }
-
-  &:not(.soon):hover {
-    text-decoration: underline;
-  }
-}
-
-.points {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 2rem;
-  margin-block: 2rem;
-  margin-inline-start: 2rem;
-  list-style: none;
-
-  li {
-    position: relative;
-    padding-inline-start: 1.5rem;
-    margin-block-end: 1.5rem;
-    max-inline-size: 40ch;
-
-    &::before {
-      content: "";
-      position: absolute;
-      inset-block-start: 0.62em;
-      inset-inline-start: 0;
-      inline-size: 0.7rem;
-      block-size: 2px;
-      background-color: var(--mint);
-    }
-  }
 }
 
 .display-modes {

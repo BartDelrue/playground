@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import {routeForMode, type ExamKey, type PlaygroundMode} from '@playground/shared'
+import type {ExamKey, PlaygroundMode} from '@playground/shared'
 
-const playgroundOrigin = String(useRuntimeConfig().public.playgroundOrigin || '')
 
 const {data: tests} = await useTests()
 const {selectedId, selected} = useSelectedTest(tests)
@@ -43,7 +42,7 @@ const selectedKeys = ref<ExamKey[]>([])
 const selectedBusy = ref(false)
 
 function selectAll() {
-  keys.value.forEach(key => selectedKeys.value.push(key))
+  keys.value?.forEach(key => selectedKeys.value.push(key))
 }
 
 async function revokeSelected() {

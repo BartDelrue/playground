@@ -215,7 +215,7 @@ body {
   background: var(--crust);
 }
 
-.preview-url {
+.preview-label {
   color: var(--green);
   text-transform: none;
   overflow: hidden;

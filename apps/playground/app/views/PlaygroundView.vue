@@ -26,6 +26,18 @@ const {logs, pushLog, clearLog} = useLogs('terminalEl')
 const {logs: consoleLogs, clearLog: clearConsole} = useConsole('consoleEl')
 const {files, activeFile, activeLang, addFile, deleteFile, onEditorChange} =
     await useFiles(props.mode, () => wc.value)
+
+// What the preview pane header says next to "Preview". It used to echo previewUrl, which
+// is an address nobody can open: browser mode points at the shim, which is fed its files
+// over postMessage, and node mode's /__virtual__/<port> only resolves through this tab's
+// service worker. Naming what is on screen beats naming where it lives.
+const previewLabel = computed(() => {
+    const name = activeFile.value
+    if (!name.endsWith('.html')) return name
+    const title = (files[name] ?? '').match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1]?.trim()
+    return title || name
+})
+
 // Awaited first, CALLED second: the factory has to run with a live component instance
 // or its onMounted/onUnmounted silently do nothing. See loadPreview's comment.
 const createPreview = await loadPreview(props.mode)
@@ -227,7 +239,7 @@ watch(isBooting, v => {
         <aside class="preview-pane" :style="{ width: previewPos + 'px' }">
           <div class="pane-header">
             Preview
-            <span v-if="previewUrl" class="preview-url">{{ previewUrl }}</span>
+            <span v-if="previewLabel" class="preview-label">{{ previewLabel }}</span>
           </div>
           <div class="preview-body">
             <iframe

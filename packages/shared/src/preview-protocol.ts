@@ -49,6 +49,25 @@ export function isConsoleMessage(data: unknown): data is ConsoleMessage {
 }
 
 /**
+ * A link click relayed out of a previewed document by navigationScript.
+ *
+ * Its own source, like the console relay's and unlike the app<->shim messages, because it
+ * travels the other way: document -> shim, one hop, same origin. Sharing the app's source
+ * would put it through the shim's peer check, which drops anything not from the app - and
+ * would let the first click define the peer if it somehow arrived first.
+ */
+export interface NavigateMessage {
+  source: 'playground-navigate'
+  href: string
+}
+
+export function isNavigateMessage(data: unknown): data is NavigateMessage {
+  return !!data && typeof data === 'object'
+    && (data as NavigateMessage).source === 'playground-navigate'
+    && typeof (data as NavigateMessage).href === 'string'
+}
+
+/**
  * Compare two origins for equality.
  *
  * Written out rather than inlined as `a === b` because the mistake this guards against -

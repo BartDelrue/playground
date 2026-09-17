@@ -252,6 +252,40 @@ body {
   & .placeholder-icon { font-size: 2rem; }
 }
 
+/* ── Open in a new tab ───────────────────────────────────────────────────── */
+/*
+ * Only ever on screen inside an embed, where the layout is cropped and there is no
+ * toolbar to hang it from - hence fixed, which in a frame means the frame's own corner.
+ * It sits over the preview, so it stays dim until it is wanted.
+ */
+.open-tab {
+  position: fixed;
+  inset-block-end: var(--space-3);
+  inset-inline-end: var(--space-3);
+  z-index: 50;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 28px;
+  block-size: 28px;
+
+  background: var(--crust);
+  border: 1px solid var(--surface1);
+  border-radius: var(--space-1);
+  color: var(--subtext0);
+  font-size: 1rem;
+  line-height: 1;
+  opacity: 0.55;
+  transition: opacity var(--t-fast), color var(--t-fast), border-color var(--t-fast);
+
+  &:hover, &:focus-visible {
+    opacity: 1;
+    color: var(--green);
+    border-color: var(--green);
+  }
+}
+
 /* ── Terminal ────────────────────────────────────────────────────────────── */
 .terminal-pane {
   flex-shrink: 0;

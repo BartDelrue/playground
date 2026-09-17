@@ -3,6 +3,7 @@ import AppHeader from "~/components/AppHeader.vue";
 import {loadPreview} from '~/composables/previews/preview'
 import {useLogs} from '~/composables/log'
 import {useFiles} from '~/composables/files'
+import OpenInTab from "~/components/OpenInTab.vue";
 import SideBar from "~/components/SideBar.vue";
 import AppDivider from "~/components/AppDivider.vue";
 import type {PlaygroundMode} from '@playground/shared'
@@ -96,6 +97,7 @@ watch(isBooting, v => {
 
         </aside>
       </main>
+      <OpenInTab/>
     </template>
     <template v-else-if="displayMode === 'vertical'">
       <main class="workspace flex-col">
@@ -137,6 +139,7 @@ watch(isBooting, v => {
 
         </aside>
       </main>
+      <OpenInTab/>
     </template>
     <template v-else>
 

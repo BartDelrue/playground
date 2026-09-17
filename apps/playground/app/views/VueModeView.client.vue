@@ -7,6 +7,7 @@ import '@vue/repl/style.css'
 import AppHeader from "~/components/AppHeader.vue";
 import SideBar from "~/components/SideBar.vue";
 import AppDivider from "~/components/AppDivider.vue";
+import OpenInTab from "~/components/OpenInTab.vue";
 import {dependencyVersionsFromImportMap} from '~/helper'
 
 // `mode` is accepted and ignored: PlaygroundShell passes it to whichever layout it picks,
@@ -99,6 +100,7 @@ const visibleFiles = computed(() =>
             style="flex:1;overflow:hidden;min-width:0; --header-height: 0%"
         />
       </main>
+      <OpenInTab/>
     </template>
 
     <template v-else-if="displayMode === 'vertical'">
@@ -114,6 +116,7 @@ const visibleFiles = computed(() =>
             style="flex:1;overflow:hidden;min-width:0; --header-height: 0%"
         />
       </main>
+      <OpenInTab/>
     </template>
 
     <template v-else>

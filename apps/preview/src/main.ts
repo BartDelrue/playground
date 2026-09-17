@@ -16,8 +16,10 @@
 import {
   buildHtml,
   buildModuleUrls,
+  linkTarget,
   transpileTs,
   isConsoleMessage,
+  isNavigateMessage,
   isPreviewMessage,
   type FileSnapshot,
   type RenderMessage,
@@ -32,6 +34,12 @@ const status = document.getElementById('status') as HTMLElement
 /** Blob URLs from the previous render, revoked once the new document has replaced it. */
 let liveBlobs: string[] = []
 
+/** The snapshot on screen, kept so a link click can re-render without asking the app. */
+let snapshot: FileSnapshot = {}
+
+/** Which file the stage is showing. Relative links resolve against it, so it is a path. */
+let entryFile = ''
+
 function post(type: 'ready' | 'rendered' | 'error', message?: string): void {
   if (!appOrigin) return
   parent.postMessage({ source: 'playground-preview', type, message }, appOrigin)
@@ -41,6 +49,37 @@ async function compile(filename: string, source: string): Promise<string> {
   if (filename.endsWith('.ts')) return transpileTs(source)
   if (filename.endsWith('.tsx')) return transpileTs(source, true)
   return source
+}
+
+/**
+ * Which file to treat as the document.
+ *
+ * The page the student navigated to outranks the snapshot's first .html, because every
+ * keystroke in the editor sends a fresh snapshot: without this, typing while two pages
+ * deep would throw the preview back to the front page on every character. Restart still
+ * goes home - it reloads this frame, and the state lives here.
+ */
+function pickEntry(files: FileSnapshot, requested?: string): string {
+  if (requested && files[requested] !== undefined) return requested
+  if (entryFile && files[entryFile] !== undefined) return entryFile
+  return Object.keys(files).find(name => name.endsWith('.html')) ?? 'index.html'
+}
+
+/**
+ * Follow a link the previewed document handed back.
+ *
+ * A link out of the snapshot only gets a console line: the alternative is covering the
+ * preview with the status overlay, and since the frame has no history there would then be
+ * no way back to the page the student was on. The line names the href, which is what they
+ * need to see - usually a typo, or a file they have not made yet.
+ */
+function navigate(href: string): void {
+  const target = linkTarget(entryFile, href, snapshot)
+  if (!target) {
+    post('error', `Cannot follow "${href}": there is no such file in this playground.`)
+    return
+  }
+  void render({ source: 'playground-preview', type: 'render', files: snapshot, entry: target })
 }
 
 async function render(msg: RenderMessage): Promise<void> {
@@ -56,17 +95,21 @@ async function render(msg: RenderMessage): Promise<void> {
 
   try {
     const urlMap = await buildModuleUrls(files, mkblob, compile)
-    const entry = msg.entry && files[msg.entry]
-      ? msg.entry
-      : Object.keys(files).find(name => name.endsWith('.html')) ?? 'index.html'
+    const entry = pickEntry(files, msg.entry)
     const source = files[entry] ?? '<html><head></head><body></body></html>'
 
-    const html = buildHtml(source, entry, files, urlMap)
+    // navigation: this is the only place a snapshot is rendered without a server under
+    // it, so this is the only place link clicks have to be intercepted.
+    const html = buildHtml(source, entry, files, urlMap, { navigation: true })
 
     // srcdoc keeps the child on this origin, so its own blob: imports resolve.
     frame.srcdoc = html
     status.hidden = true
     liveBlobs = blobs
+    // Recorded only once the document is actually on screen, so a failed render leaves
+    // the previous page navigable.
+    snapshot = files
+    entryFile = entry
     post('rendered')
   } catch (error) {
     blobs.forEach(URL.revokeObjectURL)
@@ -96,6 +139,15 @@ window.addEventListener('message', event => {
   if (isConsoleMessage(event.data)) {
     if (event.source !== frame.contentWindow) return
     if (appOrigin) parent.postMessage(event.data, appOrigin)
+    return
+  }
+
+  // A link click in the previewed document. Same one hop, same window-reference check as
+  // the console relay, and for the same reason: only the document we rendered may steer
+  // this frame.
+  if (isNavigateMessage(event.data)) {
+    if (event.source !== frame.contentWindow) return
+    navigate(event.data.href)
     return
   }
 

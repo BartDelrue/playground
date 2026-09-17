@@ -157,11 +157,69 @@ export function consoleRelayScript(): string {
 </script>`
 }
 
+/**
+ * Link interception, injected in browser mode ONLY.
+ *
+ * A previewed document is written into the stage frame with srcdoc, so it has no address
+ * of its own: a relative href resolves against the shim's URL, and clicking it navigates
+ * the frame clean off the snapshot and onto the preview origin - where nginx's SPA
+ * fallback answers with a second, empty shim. That is the blank page.
+ *
+ * The snapshot is not served anywhere, so there is nothing to navigate to. The click is
+ * cancelled and handed to the shim instead, which holds the files and re-renders the
+ * target as the new entry. Only plain left clicks on in-snapshot paths are taken:
+ * modified clicks, other targets, downloads, fragments and anything carrying a scheme
+ * stay with the browser.
+ *
+ * Node mode must NOT get this. There the paths are served for real, by a server behind
+ * the service worker, and cancelling the click would break routing that already works.
+ */
+export function navigationScript(): string {
+  return `<script>
+;(function(){
+  var _target = (location.origin && location.origin !== 'null') ? location.origin : '*'
+  document.addEventListener('click', function(e) {
+    if (e.defaultPrevented || e.button !== 0) return
+    // Ctrl/cmd-click means "open elsewhere", which we cannot honour - leave it alone
+    // rather than silently turning it into an ordinary navigation.
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+    var a = e.target && e.target.closest ? e.target.closest('a[href]') : null
+    if (!a || a.hasAttribute('download')) return
+    if (a.target && a.target !== '_self') return
+    var href = a.getAttribute('href')
+    // A fragment stays inside the document; a scheme (http:, mailto:, javascript:) is
+    // not ours to resolve.
+    if (!href || href.charAt(0) === '#' || /^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(href)) return
+    e.preventDefault()
+    window.parent.postMessage({ source: 'playground-navigate', href: href }, _target)
+  })
+})()
+</script>`
+}
+
+/**
+ * Which file in a snapshot a link points at, or null when it points outside it.
+ *
+ * Two server conventions students take for granted are honoured here, because in a
+ * snapshot nothing implements them: a directory gets its index.html, and a directory
+ * named without the trailing slash ("./projecten") is treated as one, which is what the
+ * redirect a real server sends would amount to.
+ */
+export function linkTarget(from: string, href: string, files: Record<string, string>): string | null {
+  const path = href.split(/[?#]/)[0] ?? ''
+  const resolved = resolvePath(from, path)
+  const candidates = resolved === '' || resolved.endsWith('/')
+    ? [resolved + 'index.html']
+    : [resolved, resolved + '/index.html']
+  return candidates.find(name => files[name] !== undefined) ?? null
+}
+
 export function buildHtml(
   source: string,
   filename: string,
   files: Record<string, string>,
   urlMap: Map<string, string>,
+  opts: { navigation?: boolean } = {},
 ): string {
   return source
     .replace(/<link\b[^>]*\bhref=['"]([^'"]+\.css)['"][^>]*/g, (m, href) => {
@@ -175,5 +233,7 @@ export function buildHtml(
     .replace(/(<script\b[^>]*type=['"]module['"][^>]*>)([\s\S]*?)(<\/script>)/gi, (m, open, body, close) =>
       `${open}${rewriteImports(body, filename, urlMap)}${close}`,
     )
-    .replace(/<head[^>]*>/i, match => match + consoleRelayScript())
+    .replace(/<head[^>]*>/i, match =>
+      match + consoleRelayScript() + (opts.navigation ? navigationScript() : ''),
+    )
 }

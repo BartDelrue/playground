@@ -23,6 +23,8 @@ const consolePos = ref(90)
 const terminalPos = ref(90)
 const previewPos = ref(420)
 
+if (props.displayMode === 'vertical') previewPos.value = 320
+
 const {logs, pushLog, clearLog} = useLogs('terminalEl')
 const {logs: consoleLogs, clearLog: clearConsole} = useConsole('consoleEl')
 const {files, activeFile, activeLang, addFile, deleteFile, onEditorChange} =
